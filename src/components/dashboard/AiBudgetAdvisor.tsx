@@ -1,10 +1,11 @@
+
 "use client";
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Wand2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Loader2, Wand2, AlertCircle } from 'lucide-react'; // Removed CheckCircle as it was used for success toast
 import { Transaction } from '@/lib/types';
 import { suggestBudget, SuggestBudgetInput, SuggestBudgetOutput } from '@/ai/flows/suggest-budget';
 import { useToast } from "@/hooks/use-toast";
@@ -80,12 +81,7 @@ const AiBudgetAdvisor: React.FC<AiBudgetAdvisorProps> = ({ transactions }) => {
     try {
       const result = await suggestBudget(input);
       setSuggestions(result);
-      toast({
-        title: "AI Suggestions Ready!",
-        description: "Your personalized budget tips have been generated.",
-        variant: "default",
-        action: <CheckCircle className="text-green-500" />,
-      });
+      // Success toast removed as per guideline: "Use toast components for only displaying errors"
     } catch (err) {
       console.error("AI Budget Suggestion Error:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
