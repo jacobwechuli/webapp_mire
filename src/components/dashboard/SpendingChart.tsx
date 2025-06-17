@@ -1,0 +1,114 @@
+"use client"
+
+import * as React from "react"
+import { Pie, PieChart, Cell, Tooltip, Legend } from "recharts"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+import { Transaction } from "@/lib/types"
+import { Coins } from "lucide-react"
+
+interface SpendingChartProps {
+  transactions: Transaction[]
+}
+
+const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
+  const expenseData = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((acc, t) => {
+      const existingCategory = acc.find((item) => item.category === t.category)
+      if (existingCategory) {
+        existingCategory.amount += t.amount
+      } else {
+        acc.push({ category: t.category, amount: t.amount })
+      }
+      return acc
+    }, [] as { category: string; amount: number }[])
+    .sort((a, b) => b.amount - a.amount); // Sort for consistent color assignment
+
+  const chartConfig = expenseData.reduce((config, item, index) => {
+    config[item.category] = {
+      label: item.category,
+      color: `hsl(var(--chart-${(index % 5) + 1}))`, // Cycle through 5 chart colors
+    }
+    return config
+  }, {} as ChartConfig)
+  
+  const chartData = expenseData.map(item => ({
+    name: item.category,
+    value: item.amount,
+    fill: chartConfig[item.category]?.color || `hsl(var(--chart-1))`, // Fallback color
+  }));
+
+
+  if (expenseData.length === 0) {
+    return (
+      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
+        <CardHeader>
+          <CardTitle className="text-xl font-semibold text-primary flex items-center">
+            <Coins className="mr-2 h-6 w-6" /> Spending Breakdown
+          </CardTitle>
+          <CardDescription>No expense data available to display chart.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex-1 flex items-center justify-center">
+          <p className="text-muted-foreground">Add some expenses to see your spending habits.</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
+      <CardHeader>
+        <CardTitle className="text-xl font-semibold text-primary flex items-center">
+          <Coins className="mr-2 h-6 w-6" /> Spending Breakdown
+        </CardTitle>
+        <CardDescription>Visualizing your expenses by category</CardDescription>
+      </CardHeader>
+      <CardContent className="flex-1 pb-0">
+        <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">
+          <PieChart>
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel nameKey="name" />}
+            />
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              outerRadius={100}
+              labelLine={false}
+              label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                const RADIAN = Math.PI / 180;
+                const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+                const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                if ((percent * 100) < 5) return null; // Don't show label for small slices
+                return (
+                  <text x={x} y={y} fill="hsl(var(--card-foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="10px">
+                    {`${(percent * 100).toFixed(0)}%`}
+                  </text>
+                );
+              }}
+            >
+              {chartData.map((entry) => (
+                <Cell key={`cell-${entry.name}`} fill={entry.fill} />
+              ))}
+            </Pie>
+             <ChartLegend content={<ChartLegendContent nameKey="name" className="flex-wrap justify-center" />} />
+          </PieChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  )
+}
+
+export default SpendingChart;

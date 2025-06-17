@@ -1,0 +1,185 @@
+"use client";
+
+import React, { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar as CalendarIcon, PlusCircle, TrendingDown, TrendingUp } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format, parseISO } from 'date-fns';
+import { Transaction, TransactionType, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/types';
+import { cn } from '@/lib/utils';
+
+const formSchema = z.object({
+  description: z.string().min(1, 'Description is required'),
+  amount: z.coerce.number().positive('Amount must be positive'),
+  type: z.enum(['income', 'expense'], { required_error: 'Type is required' }),
+  category: z.string().min(1, 'Category is required'),
+  date: z.date({ required_error: 'Date is required' }),
+});
+
+type TransactionFormValues = z.infer<typeof formSchema>;
+
+interface TransactionFormProps {
+  onAddTransaction: (transaction: Transaction) => void;
+  existingTransaction?: Transaction | null; // For editing, optional
+  onClose: () => void;
+}
+
+const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, existingTransaction, onClose }) => {
+  const [selectedType, setSelectedType] = useState<TransactionType>(existingTransaction?.type || 'expense');
+
+  const defaultValues = existingTransaction
+    ? {
+        ...existingTransaction,
+        amount: Number(existingTransaction.amount),
+        date: parseISO(existingTransaction.date),
+      }
+    : {
+        description: '',
+        amount: 0,
+        type: 'expense' as TransactionType,
+        category: '',
+        date: new Date(),
+      };
+  
+  const form = useForm<TransactionFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues,
+  });
+
+  const categories = selectedType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+
+  React.useEffect(() => {
+    if (existingTransaction) {
+      setSelectedType(existingTransaction.type);
+      form.reset({
+        ...existingTransaction,
+        amount: Number(existingTransaction.amount),
+        date: parseISO(existingTransaction.date),
+      });
+    }
+  }, [existingTransaction, form]);
+
+
+  const onSubmit = (data: TransactionFormValues) => {
+    const newTransaction: Transaction = {
+      id: existingTransaction?.id || Date.now().toString(),
+      ...data,
+      amount: Number(data.amount),
+      date: format(data.date, 'yyyy-MM-dd'), // Store date as ISO string
+    };
+    onAddTransaction(newTransaction);
+    form.reset({ description: '', amount: 0, type: 'expense', category: '', date: new Date() });
+    onClose();
+  };
+
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
+      <div>
+        <Label htmlFor="description">Description</Label>
+        <Input id="description" {...form.register('description')} placeholder="e.g., Groceries, Salary" />
+        {form.formState.errors.description && <p className="text-sm text-destructive mt-1">{form.formState.errors.description.message}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="amount">Amount</Label>
+        <Input id="amount" type="number" step="0.01" {...form.register('amount')} placeholder="0.00" />
+        {form.formState.errors.amount && <p className="text-sm text-destructive mt-1">{form.formState.errors.amount.message}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="type">Type</Label>
+        <Controller
+          name="type"
+          control={form.control}
+          render={({ field }) => (
+            <Select
+              onValueChange={(value) => {
+                field.onChange(value as TransactionType);
+                setSelectedType(value as TransactionType);
+                form.setValue('category', ''); // Reset category when type changes
+              }}
+              defaultValue={field.value}
+            >
+              <SelectTrigger id="type">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="income"><TrendingUp className="mr-2 h-4 w-4 inline-block" />Income</SelectItem>
+                <SelectItem value="expense"><TrendingDown className="mr-2 h-4 w-4 inline-block" />Expense</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.type && <p className="text-sm text-destructive mt-1">{form.formState.errors.type.message}</p>}
+      </div>
+      
+      <div>
+        <Label htmlFor="category">Category</Label>
+        <Controller
+          name="category"
+          control={form.control}
+          render={({ field }) => (
+            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+              <SelectTrigger id="category">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {form.formState.errors.category && <p className="text-sm text-destructive mt-1">{form.formState.errors.category.message}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="date">Date</Label>
+        <Controller
+          name="date"
+          control={form.control}
+          render={({ field }) => (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !field.value && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={field.value}
+                  onSelect={field.onChange}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+        />
+        {form.formState.errors.date && <p className="text-sm text-destructive mt-1">{form.formState.errors.date.message}</p>}
+      </div>
+      
+      <div className="flex justify-end space-x-2 pt-4">
+        <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+        <Button type="submit" className="bg-primary hover:bg-primary/90">
+          <PlusCircle className="mr-2 h-4 w-4" /> {existingTransaction ? 'Save Changes' : 'Add Transaction'}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+export default TransactionForm;
