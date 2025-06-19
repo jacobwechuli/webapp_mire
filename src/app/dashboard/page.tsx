@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -12,8 +11,9 @@ import TransactionForm from '@/components/dashboard/TransactionForm';
 import TransactionList from '@/components/dashboard/TransactionList';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PlusCircle, Coins } from 'lucide-react';
+import { PlusCircle, Coins, LogOut, User } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from '@/contexts/AuthContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,15 +24,45 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import DarkModeToggle from '@/components/ui/DarkModeToggle';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { useRouter } from 'next/navigation';
+import DashboardHeader from '@/components/layout/DashboardHeader';
+import UpcomingBillsCard from '@/components/dashboard/UpcomingBillsCard';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const [transactions, setTransactions] = useLocalStorage<Transaction[]>('goldplus-transactions', []);
   const [isMounted, setIsMounted] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   const { toast } = useToast();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  // Bills state (localStorage-backed for now)
+  const [bills, setBills] = useLocalStorage('bills', [
+    // Example default bills
+    {
+      id: '1',
+      name: 'Netflix',
+      amount: 15.99,
+      dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      description: 'Streaming subscription',
+      frequency: 'Monthly',
+    },
+    {
+      id: '2',
+      name: 'Rent',
+      amount: 1200,
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      description: 'Apartment rent',
+      frequency: 'Monthly',
+    },
+  ]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -68,6 +98,36 @@ export default function DashboardPage() {
     }
   };
 
+  const handleReset = (type: 'income' | 'expense' | 'all') => {
+    let deletedCount = 0;
+    let typeLabel = '';
+
+    if (type === 'all') {
+      deletedCount = transactions.length;
+      typeLabel = 'all transactions';
+      setTransactions([]);
+    } else {
+      const filteredTransactions = transactions.filter(t => t.type === type);
+      deletedCount = filteredTransactions.length;
+      typeLabel = type === 'income' ? 'income transactions' : 'expense transactions';
+      setTransactions(prev => prev.filter(t => t.type !== type));
+    }
+
+    toast({ 
+      title: "Reset Complete", 
+      description: `Deleted ${deletedCount} ${typeLabel}.`, 
+      variant: "destructive" 
+    });
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast({ title: "Logged out successfully", description: "You have been logged out." });
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to log out. Please try again.", variant: "destructive" });
+    }
+  };
 
   if (!isMounted) {
     return (
@@ -79,46 +139,46 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center">
-            <Coins className="h-8 w-8 text-primary mr-2" />
-            <h1 className="text-2xl font-bold text-primary font-headline">GoldPlus Dashboard</h1>
-          </div>
-          <Dialog open={isFormOpen} onOpenChange={(isOpen) => {
-            setIsFormOpen(isOpen);
-            if (!isOpen) setEditingTransaction(null);
-          }}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
-                <PlusCircle className="mr-2 h-5 w-5" /> Add Transaction
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[480px] p-6 bg-card">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-headline text-primary">
-                  {editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}
-                </DialogTitle>
-                <DialogDescription className="text-muted-foreground">
-                  {editingTransaction ? 'Update the details of your transaction.' : 'Enter details for your income or expense.'}
-                </DialogDescription>
-              </DialogHeader>
-              <TransactionForm 
-                onAddTransaction={handleAddTransaction} 
-                existingTransaction={editingTransaction}
-                onClose={() => {
-                  setIsFormOpen(false);
-                  setEditingTransaction(null);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-      </header>
+      <DashboardHeader onAddTransaction={() => setIsFormOpen(true)} />
 
-      <main className="flex-1 container py-8">
+      <Dialog open={isFormOpen} onOpenChange={(isOpen) => {
+        setIsFormOpen(isOpen);
+        if (!isOpen) setEditingTransaction(null);
+      }}>
+        <DialogContent className="sm:max-w-[480px] p-6 bg-card">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-headline text-primary">
+              {editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              {editingTransaction ? 'Update the details of your transaction.' : 'Enter details for your income or expense.'}
+            </DialogDescription>
+          </DialogHeader>
+          <TransactionForm 
+            onAddTransaction={handleAddTransaction} 
+            existingTransaction={editingTransaction}
+            onClose={() => {
+              setIsFormOpen(false);
+              setEditingTransaction(null);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+
+      <main className="flex-1 w-full max-w-none py-8 px-4 md:px-8">
         <div className="space-y-8">
-          <SummaryCards transactions={transactions} />
+          <div className="grid gap-6 mb-8 w-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <SummaryCards 
+                transactions={transactions} 
+                onReset={handleReset} 
+                showOnly={[0, 1, 2]}
+              />
+            </div>
+            <div>
+              <UpcomingBillsCard bills={bills} setBills={setBills} />
+            </div>
+          </div>
           
           <div className="grid gap-8 lg:grid-cols-2">
             <SpendingChart transactions={transactions} />
@@ -163,6 +223,30 @@ export default function DashboardPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to logout? You'll need to sign in again to access your dashboard.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowLogoutDialog(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+              Logout
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
   );
 }

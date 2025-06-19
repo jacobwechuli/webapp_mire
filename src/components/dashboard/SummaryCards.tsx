@@ -1,64 +1,157 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Transaction } from '@/lib/types';
-import { DollarSign, TrendingUp, TrendingDown, Wallet, Landmark } from 'lucide-react';
+import { Landmark, TrendingDown, Wallet, Eye, RotateCcw } from 'lucide-react';
+import TransactionHistoryModal from './TransactionHistoryModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface SummaryCardsProps {
   transactions: Transaction[];
+  onReset: (type: 'income' | 'expense' | 'all') => void;
+  showOnly?: number[];
 }
 
-const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions }) => {
-  const totalIncome = transactions
-    .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0);
+const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, showOnly }) => {
+  const [modalState, setModalState] = useState({ isOpen: false, type: 'all' as 'income' | 'expense' | 'all', title: '' });
+  const [resetDialog, setResetDialog] = useState({ isOpen: false, type: 'all' as 'income' | 'expense' | 'all', title: '' });
 
-  const totalExpenses = transactions
-    .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0);
-
+  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
   const balance = totalIncome - totalExpenses;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
   };
 
+  const handleCardClick = (type: 'income' | 'expense' | 'all', title: string) => {
+    setModalState({ isOpen: true, type, title });
+  };
+
+  const handleResetClick = (e: React.MouseEvent, type: 'income' | 'expense' | 'all', title: string) => {
+    e.stopPropagation();
+    setResetDialog({ isOpen: true, type, title });
+  };
+
+  const confirmReset = () => {
+    onReset(resetDialog.type);
+    setResetDialog(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const cardData = [
+    {
+      key: 'income',
+      title: 'Total Income',
+      value: totalIncome,
+      description: 'Click to view income history',
+      Icon: Landmark,
+      color: 'text-primary',
+      titleColor: 'text-primary',
+      onCardClick: () => handleCardClick('income', 'Income History'),
+      onResetClick: (e: React.MouseEvent) => handleResetClick(e, 'income', 'Income'),
+      showReset: true,
+    },
+    {
+      key: 'expense',
+      title: 'Total Expenses',
+      value: totalExpenses,
+      description: 'Click to view expense history',
+      Icon: TrendingDown,
+      color: 'text-destructive',
+      titleColor: 'text-destructive',
+      onCardClick: () => handleCardClick('expense', 'Expense History'),
+      onResetClick: (e: React.MouseEvent) => handleResetClick(e, 'expense', 'Expenses'),
+      showReset: true,
+    },
+    {
+      key: 'balance',
+      title: 'Net Balance',
+      value: balance,
+      description: 'Click to view all transactions',
+      Icon: Wallet,
+      color: balance >= 0 ? 'text-gold' : 'text-destructive',
+      titleColor: 'text-gold',
+      onCardClick: () => handleCardClick('all', 'All Transactions'),
+      onResetClick: () => {},
+      showReset: false,
+    },
+  ];
+
+  const indices = showOnly ?? [0, 1, 2];
+  const cardsToRender = indices.map(i => cardData[i]).filter(Boolean);
+
   return (
-    <div className="grid gap-6 md:grid-cols-3">
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-primary">Total Income</CardTitle>
-          <Landmark className="h-5 w-5 text-primary" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-foreground">{formatCurrency(totalIncome)}</div>
-          <p className="text-xs text-muted-foreground pt-1">All income received</p>
-        </CardContent>
-      </Card>
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-destructive">Total Expenses</CardTitle>
-          <TrendingDown className="h-5 w-5 text-destructive" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-foreground">{formatCurrency(totalExpenses)}</div>
-          <p className="text-xs text-muted-foreground pt-1">All expenses paid</p>
-        </CardContent>
-      </Card>
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-accent">Net Balance</CardTitle>
-          <Wallet className="h-5 w-5 text-accent" />
-        </CardHeader>
-        <CardContent>
-          <div className={`text-3xl font-bold ${balance >= 0 ? 'text-foreground' : 'text-destructive'}`}>
-            {formatCurrency(balance)}
-          </div>
-          <p className="text-xs text-muted-foreground pt-1">{balance >= 0 ? "Your current savings" : "Your current deficit"}</p>
-        </CardContent>
-      </Card>
-    </div>
+    <>
+      {cardsToRender.map((card) => (
+        <Card
+          key={card.key}
+          className="shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98] rounded-lg"
+          onClick={card.onCardClick}
+        >
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className={`text-sm font-medium ${card.titleColor}`}>{card.title}</CardTitle>
+            <div className="flex items-center gap-2">
+              <card.Icon className={`h-5 w-5 ${card.color}`} />
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className={`text-3xl font-bold ${card.color}`}>{formatCurrency(card.value)}</div>
+              {card.showReset && (
+                 <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={card.onResetClick}
+                    className="h-8 w-8 p-0"
+                    title={`Reset ${card.key}`}
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground pt-1">{card.description}</p>
+          </CardContent>
+        </Card>
+      ))}
+
+      <TransactionHistoryModal
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState(prev => ({ ...prev, isOpen: false }))}
+        transactions={transactions}
+        type={modalState.type}
+        title={modalState.title}
+      />
+
+      <AlertDialog open={resetDialog.isOpen} onOpenChange={() => setResetDialog(prev => ({...prev, isOpen: false}))}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset {resetDialog.title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete all {resetDialog.type === 'all' ? 'transactions' : resetDialog.type}? 
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmReset} className="bg-destructive hover:bg-destructive/90">
+              Reset
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

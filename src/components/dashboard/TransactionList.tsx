@@ -24,7 +24,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, onEditT
   const sortedTransactions = [...transactions].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
+    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col rounded-lg p-6">
       <CardHeader>
         <CardTitle className="text-xl font-semibold text-primary flex items-center">
           <List className="mr-2 h-6 w-6" /> Recent Transactions
@@ -39,24 +39,23 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, onEditT
             <p className="text-sm">Add a transaction to get started!</p>
           </div>
         ) : (
-          <ScrollArea className="h-[300px] md:h-[calc(100%-0px)] pr-4"> {/* Adjusted height */}
-            <ul className="space-y-4">
+          <ScrollArea className="h-full">
+            <ul className="divide-y divide-border">
               {sortedTransactions.map((t) => (
-                <li key={t.id} className="flex items-center justify-between p-3 bg-card rounded-lg border border-border hover:bg-secondary/50 transition-colors duration-200">
-                  <div className="flex items-center space-x-3">
-                    {t.type === 'income' ? 
-                      <TrendingUp className="h-6 w-6 text-green-500" /> : 
-                      <TrendingDown className="h-6 w-6 text-red-500" />
-                    }
-                    <div>
-                      <p className="font-medium text-foreground">{t.description}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(parseISO(t.date), 'MMM dd, yyyy')} - <Badge variant="outline" className="text-xs">{t.category}</Badge>
-                      </p>
+                <li key={t.id} className="py-4 flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      {t.type === 'income' ? (
+                        <TrendingUp className="h-4 w-4 text-gold" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-destructive" />
+                      )}
+                      <span className="text-sm font-medium text-muted-foreground">{t.category}</span>
                     </div>
+                    <div className="text-xs text-muted-foreground mt-1">{format(new Date(t.date), 'PPP')}</div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <p className={`font-semibold ${t.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                    <p className={`font-semibold ${t.type === 'income' ? 'text-gold' : 'text-destructive'}`}>
                       {t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}
                     </p>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditTransaction(t)}>

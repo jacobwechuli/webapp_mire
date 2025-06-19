@@ -9,6 +9,15 @@ export interface Transaction {
   date: string; // ISO string for Date
 }
 
+export interface Bill {
+  id: string;
+  name: string;
+  amount: number;
+  dueDate: string; // ISO string
+  description?: string;
+  frequency?: string; // e.g., 'Monthly', 'Yearly'
+}
+
 export const INCOME_CATEGORIES = ['Salary', 'Bonus', 'Freelance', 'Investment', 'Gift', 'Other Income'];
 export const EXPENSE_CATEGORIES = [
   'Housing', 'Transportation', 'Food', 'Utilities', 'Healthcare', 

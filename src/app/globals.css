@@ -29,6 +29,15 @@
     --chart-4: 20 80% 60%;
     --chart-5: 150 50% 55%;
     --radius: 0.5rem;
+    --gold: 42 100% 38%; /* #C28800 */
+    --wealth: 145 63% 61%; /* #4CAF50 */
+    --color-primary: #facc15;
+    --color-background: #fff;
+    --color-card: #fff;
+    --color-foreground: #222;
+    --color-gold: #bfa76a;
+    --color-green: #4ade80;
+    --color-cream: #f5e9da;
   }
 
   .dark {
@@ -56,6 +65,8 @@
     --chart-3: 210 50% 50%;
     --chart-4: 20 80% 50%;
     --chart-5: 150 50% 45%;
+    --gold: 42 100% 38%;
+    --wealth: 145 63% 61%;
   }
 }
 
@@ -69,4 +80,40 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+}
+
+[data-theme="default"] {
+  --color-primary: #facc15;
+  --color-background: #fff;
+  --color-card: #fff;
+  --color-foreground: #222;
+}
+[data-theme="dark"] {
+  --color-primary: #facc15;
+  --color-background: #18181b;
+  --color-card: #27272a;
+  --color-foreground: #f3f4f6;
+}
+[data-theme="green"] {
+  --color-primary: #4ade80;
+  --color-background: #166534;
+  --color-card: #e6fff2;
+  --color-foreground: #134e2f;
+}
+
+body, .bg-background {
+  background: var(--color-background);
+  color: var(--color-foreground);
+}
+.bg-card {
+  background: var(--color-card);
+}
+.text-primary {
+  color: var(--color-primary) !important;
+}
+.text-gold {
+  color: var(--color-gold) !important;
+}
+.text-green {
+  color: var(--color-green) !important;
 }

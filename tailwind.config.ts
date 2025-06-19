@@ -65,6 +65,12 @@ export default {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        gold: {
+          DEFAULT: '#C28800',
+        },
+        wealth: {
+          DEFAULT: '#4CAF50',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
