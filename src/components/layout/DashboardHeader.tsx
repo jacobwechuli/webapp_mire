@@ -46,52 +46,39 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onAddTransaction }) =
 
   return (
     <header className={`sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ${hidden ? '-translate-y-full' : 'translate-y-0'}`}>
-      <div className="container flex h-24 items-center justify-between">
-        <div className="flex items-center">
-          <div className="flex items-center gap-8">
-            <Link href="/dashboard" className="flex items-center gap-8">
-              <Image src="/images/goldplus.jpg" alt="GoldPlus Logo" width={120} height={80} className="rounded-xl" />
-              <h1 className="text-4xl font-black text-black font-headline tracking-tight">GOLDPLUS</h1>
-            </Link>
-          </div>
+      <div className="container flex h-20 items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/overview" className="flex items-center gap-3">
+            <Image src="/images/goldplus.jpg" alt="GoldPlus Logo" width={48} height={48} className="rounded-lg" />
+            <h1 className="text-2xl font-black text-foreground font-headline tracking-tight">GoldPlus</h1>
+          </Link>
         </div>
-        <div className="flex items-center gap-6">
-          {pathname === '/dashboard' && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90 text-lg px-6 py-3 h-14">
-                  <PlusCircle className="mr-3 h-7 w-7" /> Add
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {onAddTransaction && (
-                  <DropdownMenuItem onClick={onAddTransaction} className="text-lg py-3">
-                    Add Transaction
-                  </DropdownMenuItem>
-                )}
-                {/* <DropdownMenuItem onClick={() => router.push('/savings')} className="text-lg py-3">
-                  Add Savings
-                </DropdownMenuItem> */}
-              </DropdownMenuContent>
-            </DropdownMenu>
+        <div className="flex items-center gap-4">
+          {pathname === '/overview' && (
+            <Button onClick={onAddTransaction} size="lg" variant="gold" className="px-6 py-3 h-12 text-base font-semibold shadow hover:scale-105 transition-transform">
+              <PlusCircle className="mr-2 h-6 w-6" /> Add
+            </Button>
           )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center px-4 py-2">
-                <Menu className="h-8 w-8" />
+              <Button variant="ghost" className="flex items-center px-3 py-2">
+                <Menu className="h-7 w-7 text-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push('/profile')} className="text-lg py-3">
+            <DropdownMenuContent align="end" className="bg-background border border-border text-foreground min-w-[160px]">
+              <DropdownMenuItem onClick={() => router.push('/profile')} className="text-base py-2">
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push('/theme')} className="text-lg py-3">
+              <DropdownMenuItem onClick={() => router.push('/settings')} className="text-base py-2">
+                Settings
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/theme')} className="text-base py-2">
                 Theme
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-lg py-3 text-gold cursor-pointer">
+              <DropdownMenuItem className="text-base py-2 text-primary cursor-pointer">
                 Upgrade Plan
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout} className="text-lg py-3 text-destructive cursor-pointer">
+              <DropdownMenuItem onClick={handleLogout} className="text-base py-2 text-destructive cursor-pointer">
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>

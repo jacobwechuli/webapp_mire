@@ -34,7 +34,13 @@ export default function ThemePage() {
     setSelected(key);
     if (typeof window !== 'undefined') {
       localStorage.setItem('goldplus-theme', key);
+      document.documentElement.classList.remove('dark', 'light', 'green');
       document.documentElement.setAttribute('data-theme', key);
+      if (key === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.add(key);
+      }
     }
   };
 

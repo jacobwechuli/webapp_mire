@@ -32,8 +32,8 @@ const UpcomingBillsCard: React.FC<UpcomingBillsCardProps> = ({ bills, setBills }
         name: form.name,
         amount: parseFloat(form.amount),
         dueDate: form.dueDate,
-        description: form.description,
-        frequency: form.frequency,
+        description: form.description || '',
+        frequency: form.frequency || '',
       },
     ]);
     setForm({ name: '', amount: '', dueDate: '', description: '', frequency: '' });

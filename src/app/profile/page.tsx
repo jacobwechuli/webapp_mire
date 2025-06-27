@@ -1,17 +1,50 @@
-import React from 'react';
+"use client";
+import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
+
+function calculateAge(dob: string) {
+  if (!dob) return '';
+  const birthDate = new Date(dob);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
 
 export default function ProfilePage() {
+  const { user } = useAuth();
   // Mock user data
-  const user = {
+  const [profile, setProfile] = useState({
     fullName: 'Jacob Wechuli',
-    email: 'jacob@example.com',
-    age: 28,
+    email: user?.email || '',
     dob: '1996-01-15',
     phone: '+254 700 000000',
     country: 'Kenya',
+  });
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState(profile);
+
+  React.useEffect(() => {
+    setProfile(prev => ({ ...prev, email: user?.email || '' }));
+    setForm(prev => ({ ...prev, email: user?.email || '' }));
+  }, [user]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(f => ({ ...f, [name]: value }));
   };
+
+  const handleSave = () => {
+    setProfile(form);
+    setEditing(false);
+  };
+
+  const age = calculateAge(editing ? form.dob : profile.dob);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background py-12">
@@ -22,30 +55,77 @@ export default function ProfilePage() {
         <CardContent className="space-y-6">
           <div className="flex flex-col gap-2">
             <span className="font-semibold">Full Name:</span>
-            <span>{user.fullName}</span>
+            {editing ? (
+              <input
+                type="text"
+                name="fullName"
+                value={form.fullName}
+                onChange={handleChange}
+                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+              />
+            ) : (
+              <span>{profile.fullName}</span>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <span className="font-semibold">Email:</span>
-            <span>{user.email}</span>
+            <span>{profile.email}</span>
           </div>
           <div className="flex flex-col gap-2">
             <span className="font-semibold">Age:</span>
-            <span>{user.age}</span>
+            <span>{age}</span>
           </div>
           <div className="flex flex-col gap-2">
             <span className="font-semibold">Date of Birth:</span>
-            <span>{user.dob}</span>
+            {editing ? (
+              <input
+                type="date"
+                name="dob"
+                value={form.dob}
+                onChange={handleChange}
+                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+              />
+            ) : (
+              <span>{profile.dob}</span>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <span className="font-semibold">Phone Number:</span>
-            <span>{user.phone}</span>
+            {editing ? (
+              <input
+                type="text"
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+              />
+            ) : (
+              <span>{profile.phone}</span>
+            )}
           </div>
           <div className="flex flex-col gap-2">
             <span className="font-semibold">Country:</span>
-            <span>{user.country}</span>
+            {editing ? (
+              <input
+                type="text"
+                name="country"
+                value={form.country}
+                onChange={handleChange}
+                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+              />
+            ) : (
+              <span>{profile.country}</span>
+            )}
           </div>
-          <div className="pt-6">
-            <Button variant="gold" size="lg" className="w-full">Upgrade Plan</Button>
+          <div className="pt-6 flex gap-2">
+            {editing ? (
+              <>
+                <Button variant="gold" size="lg" className="w-full" onClick={handleSave}>Save</Button>
+                <Button variant="outline" size="lg" className="w-full" onClick={() => { setEditing(false); setForm(profile); }}>Cancel</Button>
+              </>
+            ) : (
+              <Button variant="gold" size="lg" className="w-full" onClick={() => setEditing(true)}>Edit Profile</Button>
+            )}
           </div>
         </CardContent>
       </Card>

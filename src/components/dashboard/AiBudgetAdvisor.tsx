@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState } from 'react';
@@ -7,11 +6,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, Wand2, AlertCircle } from 'lucide-react'; // Removed CheckCircle as it was used for success toast
 import { Transaction } from '@/lib/types';
-import { suggestBudget, SuggestBudgetInput, SuggestBudgetOutput } from '@/ai/flows/suggest-budget';
 import { useToast } from "@/hooks/use-toast";
 
 interface AiBudgetAdvisorProps {
   transactions: Transaction[];
+}
+
+// Define types locally (or import if you have a shared types file)
+export interface SuggestBudgetInput {
+  income: number;
+  expenses: { category: string; amount: number }[];
+}
+export interface SuggestBudgetOutput {
+  suggestions: { category: string; suggestion: string }[];
+}
+
+async function getBudgetSuggestions(input: SuggestBudgetInput): Promise<SuggestBudgetOutput> {
+  const res = await fetch('/api/suggest-budget', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error('Failed to get suggestions');
+  return res.json();
 }
 
 const AiBudgetAdvisor: React.FC<AiBudgetAdvisorProps> = ({ transactions }) => {
@@ -79,7 +96,7 @@ const AiBudgetAdvisor: React.FC<AiBudgetAdvisorProps> = ({ transactions }) => {
     };
 
     try {
-      const result = await suggestBudget(input);
+      const result = await getBudgetSuggestions(input);
       setSuggestions(result);
       // Success toast removed as per guideline: "Use toast components for only displaying errors"
     } catch (err) {

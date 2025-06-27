@@ -41,32 +41,36 @@
   }
 
   .dark {
-    --background: 231 30% 10%; /* Very dark blue */
-    --foreground: 231 48% 90%; /* Light blue text */
-    --card: 231 30% 15%;
-    --card-foreground: 231 48% 90%;
-    --popover: 231 30% 15%;
-    --popover-foreground: 231 48% 90%;
-    --primary: 231 48% 60%; /* Slightly lighter deep blue for dark mode primary */
-    --primary-foreground: 231 30% 10%; /* Dark text on dark mode primary */
-    --secondary: 231 30% 20%;
-    --secondary-foreground: 231 48% 90%;
-    --muted: 231 30% 20%;
-    --muted-foreground: 231 40% 60%;
-    --accent: 267 44% 65%; /* Slightly lighter purple for dark mode accent */
-    --accent-foreground: 231 30% 10%;
+    --background: 0 0% 0%; /* AMOLED Black */
+    --foreground: 0 0% 98%;
+    
+    /* Glassmorphism card */
+    --card: 210 4% 15% / 0.6; /* Semi-transparent dark gray */
+    --card-foreground: 0 0% 98%;
+
+    --popover: 210 4% 10% / 0.8;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 48 96% 59%; /* Gold */
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 0 0% 98%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 231 30% 25%;
-    --input: 231 30% 22%;
-    --ring: 231 48% 60%;
-    --chart-1: 231 48% 50%;
-    --chart-2: 267 44% 55%;
-    --chart-3: 210 50% 50%;
-    --chart-4: 20 80% 50%;
-    --chart-5: 150 50% 45%;
-    --gold: 42 100% 38%;
-    --wealth: 145 63% 61%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 48 96% 59%;
+    --radius: 0.75rem;
+    --color-background: #000;
   }
 }
 
@@ -80,6 +84,25 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  .dark body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAXNJREFUaAXtVEEKwjAQBCd/A3s/oL39Absf0t4P6G4P6G7/Caj/Caj/Ce3t7U4oMSHlnZ4nZSRN0uQ4uVha29tDqZbxXgJ7R4D/+4AD2AnYGSB3dSAE2O0Gtr9ATgKk04DNhQMAX/kBIHcA5A7A7AIAdwAEOAAl4z4AcgGgbgG6A/D7ADwFwA4AuwHgTgA4AOAAuADAXgBwBQAnADgA4AEALwD4jwdoANwCgCcBOACwDwB2AQBOAGgHwAEATgCgA/A+gGwF4A4A3QGgA0B2AagDQEwA6ACYvQJwS3b+2x8A6IGJQSgWiWwB/gFgDwnkAPw/gB/g/gB8gS8A/AGgHwDaA+ANuACwE8AX4A6ARwCeA+BXgGsA3ADoBFgP/n8AXIBnAGcBfAF+AbgGkBuAnQDuArwGkCfgS4BfAd4F+BGgHwAPAeACxAFwfwD8AfgagDeAnQBeAsg14AtgGfASAFcA/AFgAPaJ5/cPAAAAAElFTkSuQmCC');
+    opacity: 0.03;
+    z-index: -1;
+    pointer-events: none;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-card bg-opacity-60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg;
+  }
 }
 
 [data-theme="default"] {
@@ -90,7 +113,7 @@
 }
 [data-theme="dark"] {
   --color-primary: #facc15;
-  --color-background: #18181b;
+  --color-background: #000;
   --color-card: #27272a;
   --color-foreground: #f3f4f6;
 }
@@ -116,4 +139,27 @@ body, .bg-background {
 }
 .text-green {
   color: var(--color-green) !important;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Optional: Enhance background gradients for dashboard */
+.bg-gradient-to-b {
+  background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
+}
+.from-background {
+  --tw-gradient-from: #18181b;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(24,24,27,0));
+}
+.via-card {
+  --tw-gradient-stops: var(--tw-gradient-from), #23272f, var(--tw-gradient-to, rgba(24,24,27,0));
+}
+.to-background {
+  --tw-gradient-to: #18181b;
 }

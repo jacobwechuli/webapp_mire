@@ -41,9 +41,9 @@ export default function SavingsPage() {
       <DashboardHeader />
       <main className="container py-8 flex-1">
         <div className="mb-6">
-          <Link href="/dashboard" className="inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors">
+          <Link href="/overview" className="inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors">
             <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Dashboard
+            Back to Overview
           </Link>
         </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">

@@ -30,6 +30,9 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { useRouter } from 'next/navigation';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import UpcomingBillsCard from '@/components/dashboard/UpcomingBillsCard';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 function DashboardContent() {
   const [transactions, setTransactions] = useLocalStorage<Transaction[]>('goldplus-transactions', []);
@@ -62,7 +65,7 @@ function DashboardContent() {
       description: 'Apartment rent',
       frequency: 'Monthly',
     },
-  ]);
+  ].map(bill => ({ ...bill, description: bill.description || '', frequency: bill.frequency || '' })));
 
   useEffect(() => {
     setIsMounted(true);
@@ -129,6 +132,14 @@ function DashboardContent() {
     }
   };
 
+  const handleUpdateBills = (newBills: any[]) => {
+    setBills(newBills.map(bill => ({
+      ...bill,
+      description: bill.description || '',
+      frequency: bill.frequency || '',
+    })));
+  };
+
   if (!isMounted) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -139,7 +150,21 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <DashboardHeader onAddTransaction={() => setIsFormOpen(true)} />
+      <DashboardHeader 
+        onAddTransaction={() => setIsFormOpen(true)}
+        addButton={
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button size="lg" variant="gold" onClick={() => setIsFormOpen(true)}>
+                  <PlusCircle className="mr-2 h-5 w-5" /> Add Transaction
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Add a new income or expense</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        }
+      />
 
       <Dialog open={isFormOpen} onOpenChange={(isOpen) => {
         setIsFormOpen(isOpen);
@@ -165,35 +190,78 @@ function DashboardContent() {
         </DialogContent>
       </Dialog>
 
-      <main className="flex-1 w-full max-w-none py-8 px-4 md:px-8">
+      <main className="flex-1 w-full max-w-none py-8 px-4 md:px-8 bg-gradient-to-b from-background via-card to-background">
         <div className="space-y-8">
           <div className="grid gap-6 mb-8 w-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <SummaryCards 
-                transactions={transactions} 
-                onReset={handleReset} 
-                showOnly={[0, 1, 2]}
-              />
-            </div>
-            <div>
-              <UpcomingBillsCard bills={bills} setBills={setBills} />
-            </div>
-          </div>
-          
-          <div className="grid gap-8 lg:grid-cols-2">
-            <SpendingChart transactions={transactions} />
-            <AiBudgetAdvisor transactions={transactions} />
-          </div>
-
-          <div className="grid gap-8 lg:grid-cols-3">
-             <FinancialTips transactions={transactions} />
-             <div className="lg:col-span-2">
-                <TransactionList 
+              <Card className="animate-fade-in">
+                <CardContent>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <div>
+                        <SummaryCards 
+                          transactions={transactions} 
+                          onReset={handleReset} 
+                          showOnly={[0]}
+                        />
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent>More details about your balance and tips for improvement.</PopoverContent>
+                  </Popover>
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in delay-100">
+                <CardContent>
+                  <SummaryCards 
                     transactions={transactions} 
-                    onEditTransaction={handleEditTransaction}
-                    onDeleteTransaction={handleDeleteTransaction}
+                    onReset={handleReset} 
+                    showOnly={[1]}
+                  />
+                </CardContent>
+              </Card>
+              <Card className="animate-fade-in delay-200">
+                <CardContent>
+                  <SummaryCards 
+                    transactions={transactions} 
+                    onReset={handleReset} 
+                    showOnly={[2]}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+            <Card className="animate-fade-in delay-300">
+              <CardContent>
+                <UpcomingBillsCard bills={bills} setBills={handleUpdateBills} />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="grid gap-8 lg:grid-cols-2">
+            <Card className="animate-fade-in delay-400">
+              <CardContent>
+                <SpendingChart transactions={transactions} />
+              </CardContent>
+            </Card>
+            <Card className="animate-fade-in delay-500">
+              <CardContent>
+                <AiBudgetAdvisor transactions={transactions} />
+              </CardContent>
+            </Card>
+          </div>
+          <div className="grid gap-8 lg:grid-cols-3">
+            <Card className="animate-fade-in delay-600">
+              <CardContent>
+                <FinancialTips transactions={transactions} />
+              </CardContent>
+            </Card>
+            <Card className="lg:col-span-2 animate-fade-in delay-700">
+              <CardContent>
+                <TransactionList 
+                  transactions={transactions} 
+                  onEditTransaction={handleEditTransaction}
+                  onDeleteTransaction={handleDeleteTransaction}
                 />
-             </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>
@@ -243,7 +311,7 @@ function DashboardContent() {
   );
 }
 
-export default function DashboardPage() {
+export default function OverviewPage() {
   return (
     <ProtectedRoute>
       <DashboardContent />
