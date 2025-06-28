@@ -57,13 +57,7 @@ export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
-
-  // Show loading while checking authentication
+  // Show loading while checking authentication (optional, can remove if not needed)
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
@@ -75,11 +69,7 @@ export default function HomePage() {
     );
   }
 
-  // Don't render content if not authenticated (will redirect)
-  if (!user) {
-    return null;
-  }
-
+  // Remove the authentication check - render content for everyone
   return (
     <div className="bg-background min-h-screen w-full text-card-foreground" style={{ fontFamily: 'Inter, sans-serif' }}>
       {/* Hero Section */}
