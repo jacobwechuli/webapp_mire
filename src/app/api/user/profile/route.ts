@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
           .insert({
             id: user.id,
             email: user.email,
-            full_name: user.user_metadata?.displayName || '',
+            display_name: user.user_metadata?.displayName || '',
           })
           .select()
           .single();
@@ -66,7 +66,7 @@ export async function PUT(request: NextRequest) {
     const { data: profile, error } = await supabase
       .from('profiles')
       .update({
-        full_name: body.full_name,
+        _name: body.display_name,
         date_of_birth: body.date_of_birth,
         phone: body.phone,
         country: body.country,

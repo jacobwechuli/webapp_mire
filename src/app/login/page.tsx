@@ -120,7 +120,6 @@ export default function LoginPage() {
                 <Label htmlFor="email" className="text-card-foreground">Email address</Label>
                 <Input
                   id="email"
-                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
