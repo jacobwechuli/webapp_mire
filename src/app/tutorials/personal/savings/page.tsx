@@ -1,6 +1,6 @@
 export default function SavingsPage() {
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen bg-white text-black">
       <div
         aria-hidden="true"
         className="pointer-events-none select-none fixed inset-0 z-0"
@@ -8,13 +8,13 @@ export default function SavingsPage() {
           backgroundImage: "url('/images/tutorials.png')",
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          opacity: 0.18,
-          filter: 'brightness(0.7) blur(1px)',
+          opacity: 0.1,
+          filter: 'brightness(1.2) blur(1px)',
         }}
       />
       <div className="relative z-10 container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold">Savings</h1>
-        <p className="text-lg text-muted-foreground mt-2">
+        <h1 className="text-4xl font-bold text-black">Savings</h1>
+        <p className="text-lg text-black/80 mt-2">
           Understand strategies for saving consistently and setting financial goals.
         </p>
       </div>

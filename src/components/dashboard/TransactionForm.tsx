@@ -14,6 +14,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO } from 'date-fns';
 import { Transaction, TransactionType, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 const formSchema = z.object({
   description: z.string().min(1, 'Description is required'),
@@ -80,105 +81,117 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Input id="description" {...form.register('description')} placeholder="e.g., Groceries, Salary" />
-        {form.formState.errors.description && <p className="text-sm text-destructive mt-1">{form.formState.errors.description.message}</p>}
-      </div>
+    <Card className="bg-background text-foreground shadow-lg border border-border">
+      <CardHeader>
+        <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
+          {existingTransaction ? 'Edit Transaction' : 'Add Transaction'}
+        </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          {existingTransaction ? 'Update your transaction details.' : 'Fill in the details to add a new transaction.'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
+          <div>
+            <Label htmlFor="description" className="text-card-foreground">Description</Label>
+            <Input id="description" {...form.register('description')} placeholder="e.g., Groceries, Salary" className="bg-background text-foreground border-border" />
+            {form.formState.errors.description && <p className="text-sm text-destructive mt-1">{form.formState.errors.description.message}</p>}
+          </div>
 
-      <div>
-        <Label htmlFor="amount">Amount</Label>
-        <Input id="amount" type="number" step="0.01" {...form.register('amount')} placeholder="0.00" />
-        {form.formState.errors.amount && <p className="text-sm text-destructive mt-1">{form.formState.errors.amount.message}</p>}
-      </div>
+          <div>
+            <Label htmlFor="amount" className="text-card-foreground">Amount</Label>
+            <Input id="amount" type="number" step="0.01" {...form.register('amount')} placeholder="0.00" className="bg-background text-foreground border-border" />
+            {form.formState.errors.amount && <p className="text-sm text-destructive mt-1">{form.formState.errors.amount.message}</p>}
+          </div>
 
-      <div>
-        <Label htmlFor="type">Type</Label>
-        <Controller
-          name="type"
-          control={form.control}
-          render={({ field }) => (
-            <Select
-              onValueChange={(value) => {
-                field.onChange(value as TransactionType);
-                setSelectedType(value as TransactionType);
-                form.setValue('category', ''); // Reset category when type changes
-              }}
-              defaultValue={field.value}
-            >
-              <SelectTrigger id="type">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="income"><TrendingUp className="mr-2 h-4 w-4 inline-block" />Income</SelectItem>
-                <SelectItem value="expense"><TrendingDown className="mr-2 h-4 w-4 inline-block" />Expense</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {form.formState.errors.type && <p className="text-sm text-destructive mt-1">{form.formState.errors.type.message}</p>}
-      </div>
-      
-      <div>
-        <Label htmlFor="category">Category</Label>
-        <Controller
-          name="category"
-          control={form.control}
-          render={({ field }) => (
-            <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
-              <SelectTrigger id="category">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          )}
-        />
-        {form.formState.errors.category && <p className="text-sm text-destructive mt-1">{form.formState.errors.category.message}</p>}
-      </div>
-
-      <div>
-        <Label htmlFor="date">Date</Label>
-        <Controller
-          name="date"
-          control={form.control}
-          render={({ field }) => (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !field.value && "text-muted-foreground"
-                  )}
+          <div>
+            <Label htmlFor="type" className="text-card-foreground">Type</Label>
+            <Controller
+              name="type"
+              control={form.control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value as TransactionType);
+                    setSelectedType(value as TransactionType);
+                    form.setValue('category', ''); // Reset category when type changes
+                  }}
+                  defaultValue={field.value}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={field.value}
-                  onSelect={field.onChange}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          )}
-        />
-        {form.formState.errors.date && <p className="text-sm text-destructive mt-1">{form.formState.errors.date.message}</p>}
-      </div>
-      
-      <div className="flex justify-end space-x-2 pt-4">
-        <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-        <Button type="submit" className="bg-primary hover:bg-primary/90">
-          <PlusCircle className="mr-2 h-4 w-4" /> {existingTransaction ? 'Save Changes' : 'Add Transaction'}
-        </Button>
-      </div>
-    </form>
+                  <SelectTrigger id="type" className="bg-background text-foreground border-border">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background text-foreground border-border">
+                    <SelectItem value="income"><TrendingUp className="mr-2 h-4 w-4 inline-block" />Income</SelectItem>
+                    <SelectItem value="expense"><TrendingDown className="mr-2 h-4 w-4 inline-block" />Expense</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.formState.errors.type && <p className="text-sm text-destructive mt-1">{form.formState.errors.type.message}</p>}
+          </div>
+          
+          <div>
+            <Label htmlFor="category" className="text-card-foreground">Category</Label>
+            <Controller
+              name="category"
+              control={form.control}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
+                  <SelectTrigger id="category" className="bg-background text-foreground border-border">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-background text-foreground border-border">
+                    {categories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {form.formState.errors.category && <p className="text-sm text-destructive mt-1">{form.formState.errors.category.message}</p>}
+          </div>
+
+          <div>
+            <Label htmlFor="date" className="text-card-foreground">Date</Label>
+            <Controller
+              name="date"
+              control={form.control}
+              render={({ field }) => (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal bg-background text-foreground border-border",
+                        !field.value && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {field.value ? format(field.value, 'PPP') : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 bg-background text-foreground border-border">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
+            />
+            {form.formState.errors.date && <p className="text-sm text-destructive mt-1">{form.formState.errors.date.message}</p>}
+          </div>
+          
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} className="border-border text-foreground hover:bg-accent">Cancel</Button>
+            <Button type="submit" variant="gold" className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <PlusCircle className="mr-2 h-4 w-4" /> {existingTransaction ? 'Save Changes' : 'Add Transaction'}
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

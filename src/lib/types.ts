@@ -18,6 +18,17 @@ export interface Bill {
   frequency?: string; // e.g., 'Monthly', 'Yearly'
 }
 
+export interface Profile {
+  id: string;
+  display_name: string | null;
+  email: string | null;
+  date_of_birth: string | null; // ISO date string
+  phone: string | null;
+  country: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export const INCOME_CATEGORIES = ['Salary', 'Bonus', 'Freelance', 'Investment', 'Gift', 'Other Income'];
 export const EXPENSE_CATEGORIES = [
   'Housing', 'Transportation', 'Food', 'Utilities', 'Healthcare', 

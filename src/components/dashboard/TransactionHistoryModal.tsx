@@ -23,7 +23,7 @@ const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
   title
 }) => {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(amount);
   };
 
   const formatDate = (date: string) => {
@@ -42,57 +42,54 @@ const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl w-full bg-background text-foreground border border-border">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5" />
+          <DialogTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
             {title}
           </DialogTitle>
         </DialogHeader>
-        
         <div className="flex-1 overflow-hidden flex flex-col">
-          <div className="mb-4 p-4 bg-muted/50 rounded-lg">
+          <div className="mb-4 p-4 bg-accent rounded-lg border border-border">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Total {type === 'all' ? 'Transactions' : type === 'income' ? 'Income' : 'Expenses'}</p>
-                <p className="text-2xl font-bold">{formatCurrency(totalAmount)}</p>
+                <p className="text-2xl font-bold text-card-foreground">{formatCurrency(totalAmount)}</p>
               </div>
-              <Badge variant={type === 'income' ? 'default' : type === 'expense' ? 'destructive' : 'secondary'}>
+              <Badge variant={type === 'income' ? 'default' : type === 'expense' ? 'destructive' : 'secondary'} className="bg-primary text-primary-foreground">
                 {filteredTransactions.length} {filteredTransactions.length === 1 ? 'transaction' : 'transactions'}
               </Badge>
             </div>
           </div>
-
           <div className="flex-1 overflow-auto">
             {filteredTransactions.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-                <Tag className="h-8 w-8 mb-2 opacity-50" />
+                <Tag className="h-8 w-8 mb-2 opacity-50 text-muted-foreground" />
                 <p>No {type === 'all' ? '' : type} transactions found</p>
               </div>
             ) : (
-              <Table>
+              <Table className="bg-card text-card-foreground">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead className="text-muted-foreground">Date</TableHead>
+                    <TableHead className="text-muted-foreground">Description</TableHead>
+                    <TableHead className="text-muted-foreground">Category</TableHead>
+                    <TableHead className="text-right text-muted-foreground">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredTransactions
                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                     .map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell className="flex items-center gap-2">
+                    <TableRow key={transaction.id} className="border-border">
+                      <TableCell className="flex items-center gap-2 text-muted-foreground">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         {formatDate(transaction.date)}
                       </TableCell>
-                      <TableCell className="font-medium">{transaction.description}</TableCell>
+                      <TableCell className="font-medium text-card-foreground">{transaction.description}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{transaction.category}</Badge>
+                        <Badge variant="outline" className="border-primary text-primary bg-primary/10">{transaction.category}</Badge>
                       </TableCell>
-                      <TableCell className={`text-right font-bold ${transaction.type === 'income' ? 'text-green-600' : 'text-red-600'}`}>
+                      <TableCell className={`text-right font-bold ${transaction.type === 'income' ? 'text-primary' : 'text-muted-foreground'}`}>
                         {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                       </TableCell>
                     </TableRow>

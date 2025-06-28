@@ -37,18 +37,20 @@ export default function SavingsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="flex flex-col min-h-screen bg-background text-card-foreground">
       <DashboardHeader />
       <main className="container py-8 flex-1">
         <div className="mb-6">
-          <Link href="/overview" className="inline-flex items-center text-primary hover:text-primary/80 font-medium transition-colors">
-            <ArrowLeft className="h-5 w-5 mr-2" />
-            Back to Overview
-          </Link>
+          <Button 
+            variant="outline" 
+            onClick={() => router.push('/overview')}
+          >
+            ← Back to Overview
+          </Button>
         </div>
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold font-headline text-primary">Savings Goals</h1>
-          <Button onClick={() => setAddModalOpen(true)} className="flex items-center gap-2 w-full md:w-auto">
+          <h1 className="text-3xl font-bold font-headline text-card-foreground">Savings Goals</h1>
+          <Button onClick={() => setAddModalOpen(true)} variant="default" className="flex items-center gap-2 w-full md:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
             <PlusCircle className="h-5 w-5" /> Add Goal
           </Button>
         </div>

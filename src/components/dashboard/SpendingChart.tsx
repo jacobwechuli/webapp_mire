@@ -46,15 +46,14 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
     fill: chartConfig[item.category]?.color || `hsl(var(--chart-1))`, // Fallback color
   }));
 
-
   if (expenseData.length === 0) {
     return (
-      <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
+      <Card className="bg-card text-card-foreground shadow-lg flex flex-col h-full border border-border">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-primary flex items-center">
-            <Coins className="mr-2 h-6 w-6" /> Spending Breakdown
+          <CardTitle className="text-xl font-semibold text-card-foreground flex items-center">
+            <Coins className="mr-2 h-6 w-6 text-primary" /> Spending Breakdown
           </CardTitle>
-          <CardDescription>No expense data available to display chart.</CardDescription>
+          <CardDescription className="text-muted-foreground">No expense data available to display chart.</CardDescription>
         </CardHeader>
         <CardContent className="flex-1 flex items-center justify-center">
           <p className="text-muted-foreground">Add some expenses to see your spending habits.</p>
@@ -64,12 +63,12 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
   }
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
+    <Card className="bg-background text-foreground border border-border shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold text-primary flex items-center">
-          <Coins className="mr-2 h-6 w-6" /> Spending Breakdown
+        <CardTitle className="text-xl font-semibold text-card-foreground flex items-center">
+          <Coins className="mr-2 h-6 w-6 text-primary" /> Spending Breakdown
         </CardTitle>
-        <CardDescription>Visualizing your expenses by category</CardDescription>
+        <CardDescription className="text-muted-foreground">Visualizing your expenses by category</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer config={chartConfig} className="mx-auto aspect-square max-h-[300px]">

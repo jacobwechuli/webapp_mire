@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Calendar, PlusCircle, Trash2 } from 'lucide-react';
+import { Calendar, PlusCircle, Trash2, DollarSign } from 'lucide-react';
 import { Bill } from '@/lib/types';
 
 interface UpcomingBillsCardProps {
@@ -45,82 +45,109 @@ const UpcomingBillsCard: React.FC<UpcomingBillsCardProps> = ({ bills, setBills }
   };
 
   return (
-    <Card className="shadow-lg rounded-lg p-6 border-2 border-gold">
+    <Card className="bg-background text-foreground border border-border shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-bold flex items-center gap-2 text-gold">
-          <Calendar className="h-5 w-5 text-gold" />
-          Upcoming Bills & Subscriptions
-        </CardTitle>
-        <Button variant="gold" onClick={() => setShowAdd(v => !v)} title="Add Subscription">
-          Add Subscription/Bill
+        <div>
+          <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-primary" />
+            Upcoming Bills & Subscriptions
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Track your upcoming payments and due dates
+          </CardDescription>
+        </div>
+        <Button variant="default" onClick={() => setShowAdd(v => !v)} title="Add Subscription">
+          <PlusCircle className="h-4 w-4 mr-2" />
+          Add Bill
         </Button>
       </CardHeader>
       <CardContent>
         {showAdd && (
-          <div className="mb-4 flex flex-col gap-2 bg-muted/50 p-4 rounded-lg">
+          <div className="mb-4 flex flex-col gap-2 bg-accent p-4 rounded-lg border border-border">
             <Input
               placeholder="Name (e.g., Netflix)"
               value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+              className="bg-background text-foreground border-border"
             />
             <Input
               placeholder="Amount"
               type="number"
               value={form.amount}
               onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+              className="bg-background text-foreground border-border"
             />
             <Input
               placeholder="Due Date"
               type="date"
               value={form.dueDate}
               onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
+              className="bg-background text-foreground border-border"
             />
             <Input
               placeholder="Description (optional)"
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+              className="bg-background text-foreground border-border"
             />
             <Input
               placeholder="Frequency (e.g., Monthly)"
               value={form.frequency}
               onChange={e => setForm(f => ({ ...f, frequency: e.target.value }))}
+              className="bg-background text-foreground border-border"
             />
             <div className="flex gap-2 mt-2">
-              <Button variant="gold" onClick={handleAdd}>Add</Button>
-              <Button variant="outline" onClick={() => setShowAdd(false)}>Cancel</Button>
+              <Button variant="default" onClick={handleAdd}>Add</Button>
+              <Button variant="outline" onClick={() => setShowAdd(false)} className="border-border text-foreground hover:bg-accent">Cancel</Button>
             </div>
           </div>
         )}
+        
         {sortedBills.length === 0 && !showAdd && (
-          <div className="text-muted-foreground text-sm">No upcoming bills. Add one to get started!</div>
+          <div className="text-center py-8 text-muted-foreground">
+            <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p>No upcoming bills</p>
+            <p className="text-sm">Add your recurring bills to track them here</p>
+          </div>
         )}
-        <ul className="divide-y divide-border">
-          {sortedBills.map(bill => {
+        
+        <div className="space-y-2">
+          {sortedBills.map((bill) => {
             const due = new Date(bill.dueDate);
             const days = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
             const dueSoon = days <= 5;
             return (
-              <li key={bill.id} className="py-3 flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className={`font-bold ${dueSoon ? 'text-gold' : 'text-foreground'}`}>{bill.name}</span>
-                    <span className="text-xs text-muted-foreground">{bill.frequency}</span>
+              <div key={bill.id} className="flex items-center justify-between p-3 rounded-lg bg-accent border border-border">
+                <div className="flex items-center space-x-3">
+                  <div className="flex-shrink-0 w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                    <DollarSign className="h-5 w-5 text-primary-foreground" />
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    Due: <span className={dueSoon ? 'text-gold font-semibold' : ''}>{due.toLocaleDateString()}</span>
-                    {bill.description && <span> &mdash; {bill.description}</span>}
+                  <div>
+                    <h4 className="font-semibold text-card-foreground">{bill.name}</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Due: {due.toLocaleDateString()}
+                      {bill.frequency && ` • ${bill.frequency}`}
+                      {bill.description && ` • ${bill.description}`}
+                    </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-bold">${bill.amount.toFixed(2)}</span>
+                <div className="flex items-center space-x-2">
+                  <div className="text-right">
+                    <p className="font-bold text-card-foreground">${bill.amount.toFixed(2)}</p>
+                    <p className={`text-xs ${dueSoon ? 'text-destructive' : 'text-muted-foreground'}`}>
+                      {days === 0 ? 'Due today' : 
+                       days === 1 ? 'Due tomorrow' : 
+                       `${days} days left`}
+                    </p>
+                  </div>
                   <Button size="icon" variant="ghost" onClick={() => handleRemove(bill.id)} title="Remove">
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-destructive" />
                   </Button>
                 </div>
-              </li>
+              </div>
             );
           })}
-        </ul>
+        </div>
       </CardContent>
     </Card>
   );

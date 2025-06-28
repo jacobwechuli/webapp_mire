@@ -53,18 +53,21 @@ const FinancialTips: React.FC<FinancialTipsProps> = ({ transactions }) => {
   const dynamicTip = getDynamicTip();
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className="bg-background text-foreground border border-border shadow-lg">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold text-primary flex items-center">
-          <Lightbulb className="mr-2 h-6 w-6" /> Financial Tip
+        <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
+          <Lightbulb className="h-5 w-5 text-primary" />
+          Financial Tips
         </CardTitle>
-        <CardDescription>Smart advice to boost your financial health.</CardDescription>
+        <CardDescription className="text-muted-foreground">
+          Get daily tips to improve your financial health.
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {dynamicTip ? (
-            <p className="text-foreground text-sm leading-relaxed">{dynamicTip}</p>
+            <p className="text-muted-foreground text-sm leading-relaxed">{dynamicTip}</p>
         ) : (
-            currentTip && <p className="text-foreground text-sm leading-relaxed">{currentTip}</p>
+            currentTip && <p className="text-muted-foreground text-sm leading-relaxed">{currentTip}</p>
         )}
          {!dynamicTip && !currentTip && (
             <p className="text-muted-foreground text-sm">No tips available at the moment.</p>

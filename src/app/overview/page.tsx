@@ -24,7 +24,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import DarkModeToggle from '@/components/ui/DarkModeToggle';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
@@ -142,37 +141,25 @@ function DashboardContent() {
 
   if (!isMounted) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex items-center justify-center min-h-screen bg-background text-card-foreground">
         <Coins className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <DashboardHeader 
-        onAddTransaction={() => setIsFormOpen(true)}
-        addButton={
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button size="lg" variant="gold" onClick={() => setIsFormOpen(true)}>
-                  <PlusCircle className="mr-2 h-5 w-5" /> Add Transaction
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Add a new income or expense</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        }
-      />
-
+    <div className="flex flex-col min-h-screen bg-background text-card-foreground">
+      <DashboardHeader onAddTransaction={() => {
+        setIsFormOpen(true);
+        setEditingTransaction(null);
+      }} />
       <Dialog open={isFormOpen} onOpenChange={(isOpen) => {
         setIsFormOpen(isOpen);
         if (!isOpen) setEditingTransaction(null);
       }}>
-        <DialogContent className="sm:max-w-[480px] p-6 bg-card">
+        <DialogContent className="sm:max-w-[480px] p-6 bg-card text-card-foreground border border-border">
           <DialogHeader>
-            <DialogTitle className="text-xl font-headline text-primary">
+            <DialogTitle className="text-xl font-headline text-card-foreground">
               {editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -190,27 +177,27 @@ function DashboardContent() {
         </DialogContent>
       </Dialog>
 
-      <main className="flex-1 w-full max-w-none py-8 px-4 md:px-8 bg-gradient-to-b from-background via-card to-background">
+      <main className="flex-1 w-full max-w-none py-8 px-4 md:px-8 bg-background text-card-foreground">
         <div className="space-y-8">
           <div className="grid gap-6 mb-8 w-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="animate-fade-in">
+              <Card className="animate-fade-in bg-card border border-border">
                 <CardContent>
                   <Popover>
                     <PopoverTrigger asChild>
                       <div>
                         <SummaryCards 
-                          transactions={transactions} 
+                          transactions={transactions}
                           onReset={handleReset} 
                           showOnly={[0]}
                         />
                       </div>
                     </PopoverTrigger>
-                    <PopoverContent>More details about your balance and tips for improvement.</PopoverContent>
+                    <PopoverContent className="bg-card text-card-foreground border border-border">More details about your balance and tips for improvement.</PopoverContent>
                   </Popover>
                 </CardContent>
               </Card>
-              <Card className="animate-fade-in delay-100">
+              <Card className="animate-fade-in delay-100 bg-card border border-border">
                 <CardContent>
                   <SummaryCards 
                     transactions={transactions} 
@@ -219,7 +206,7 @@ function DashboardContent() {
                   />
                 </CardContent>
               </Card>
-              <Card className="animate-fade-in delay-200">
+              <Card className="animate-fade-in delay-200 bg-card border border-border">
                 <CardContent>
                   <SummaryCards 
                     transactions={transactions} 
@@ -229,34 +216,34 @@ function DashboardContent() {
                 </CardContent>
               </Card>
             </div>
-            <Card className="animate-fade-in delay-300">
+            <Card className="animate-fade-in delay-300 bg-card border border-border">
               <CardContent>
                 <UpcomingBillsCard bills={bills} setBills={handleUpdateBills} />
               </CardContent>
             </Card>
           </div>
           <div className="grid gap-8 lg:grid-cols-2">
-            <Card className="animate-fade-in delay-400">
+            <Card className="animate-fade-in delay-400 bg-card border border-border">
               <CardContent>
                 <SpendingChart transactions={transactions} />
               </CardContent>
             </Card>
-            <Card className="animate-fade-in delay-500">
+            <Card className="animate-fade-in delay-500 bg-card border border-border">
               <CardContent>
                 <AiBudgetAdvisor transactions={transactions} />
               </CardContent>
             </Card>
           </div>
           <div className="grid gap-8 lg:grid-cols-3">
-            <Card className="animate-fade-in delay-600">
+            <Card className="animate-fade-in delay-600 bg-card border border-border">
               <CardContent>
                 <FinancialTips transactions={transactions} />
               </CardContent>
             </Card>
-            <Card className="lg:col-span-2 animate-fade-in delay-700">
+            <Card className="lg:col-span-2 animate-fade-in delay-700 bg-card border border-border">
               <CardContent>
                 <TransactionList 
-                  transactions={transactions} 
+                  transactions={transactions}
                   onEditTransaction={handleEditTransaction}
                   onDeleteTransaction={handleDeleteTransaction}
                 />
@@ -266,16 +253,27 @@ function DashboardContent() {
         </div>
       </main>
 
-      <footer className="py-6 md:px-8 md:py-0 border-t bg-card">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-20 md:flex-row">
-          <p className="text-sm text-center text-muted-foreground md:text-left">
-            © {new Date().getFullYear()} GoldPlus. All rights reserved.
-          </p>
+      <footer className="py-6 md:px-8 md:py-0 border-t border-border bg-card text-card-foreground">
+        <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+          <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
+            <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+              Built by{" "}
+              <a href="#" className="font-medium underline underline-offset-4 text-primary">
+                GoldPlus Team
+              </a>
+              . The source code is available on{" "}
+              <a href="#" className="font-medium underline underline-offset-4 text-primary">
+                GitHub
+              </a>
+              .
+            </p>
+          </div>
         </div>
       </footer>
 
+      {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!transactionToDelete} onOpenChange={() => setTransactionToDelete(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card text-card-foreground border border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -283,25 +281,26 @@ function DashboardContent() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteTransaction} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogCancel className="border-border text-foreground hover:bg-accent">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteTransaction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Logout Confirmation Dialog */}
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-card text-card-foreground border border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>Logout</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to logout? You'll need to sign in again to access your dashboard.
+              Are you sure you want to logout? Your data will be saved locally.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setShowLogoutDialog(false)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogCancel className="border-border text-foreground hover:bg-accent">Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout} className="bg-primary text-primary-foreground hover:bg-primary/90">
               Logout
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface AddGoalModalProps {
   open: boolean;
@@ -37,24 +38,50 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({ open, onOpenChange, onAddGo
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md bg-card text-card-foreground border border-border">
         <DialogHeader>
-          <DialogTitle>Add Savings Goal</DialogTitle>
+          <DialogTitle className="text-card-foreground">Add Savings Goal</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Create a new savings goal to track your progress
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Goal Item</label>
-            <Input value={item} onChange={e => setItem(e.target.value)} required placeholder="e.g. New Laptop" />
+            <Label htmlFor="item" className="text-card-foreground">Goal Item</Label>
+            <Input 
+              id="item"
+              value={item} 
+              onChange={e => setItem(e.target.value)} 
+              required 
+              placeholder="e.g. New Laptop" 
+              className="bg-background text-foreground border-border" 
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Target Amount</label>
-            <Input type="number" min={1} value={amount} onChange={e => setAmount(e.target.value)} required placeholder="$" />
+            <Label htmlFor="amount" className="text-card-foreground">Target Amount</Label>
+            <Input 
+              id="amount"
+              type="number" 
+              min={1} 
+              value={amount} 
+              onChange={e => setAmount(e.target.value)} 
+              required 
+              placeholder="KES" 
+              className="bg-background text-foreground border-border" 
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Target Date</label>
-            <Input type="date" value={targetDate} onChange={e => setTargetDate(e.target.value)} required />
+            <Label htmlFor="targetDate" className="text-card-foreground">Target Date</Label>
+            <Input 
+              id="targetDate"
+              type="date" 
+              value={targetDate} 
+              onChange={e => setTargetDate(e.target.value)} 
+              required 
+              className="bg-background text-foreground border-border" 
+            />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" variant="default" className="w-full bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
             {loading ? "Adding..." : "Add Goal"}
           </Button>
         </form>

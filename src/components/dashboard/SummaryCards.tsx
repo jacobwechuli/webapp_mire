@@ -32,7 +32,7 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
   const balance = totalIncome - totalExpenses;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(amount);
   };
 
   const handleCardClick = (type: 'income' | 'expense' | 'all', title: string) => {
@@ -96,28 +96,28 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
       {cardsToRender.map((card) => (
         <Card
           key={card.key}
-          className="shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98] rounded-lg"
+          className="bg-background text-foreground shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98] rounded-lg border border-border"
           onClick={card.onCardClick}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className={`text-sm font-medium ${card.titleColor}`}>{card.title}</CardTitle>
+            <CardTitle className={`text-sm font-medium text-card-foreground`}>{card.title}</CardTitle>
             <div className="flex items-center gap-2">
-              <card.Icon className={`h-5 w-5 ${card.color}`} />
+              <card.Icon className={`h-5 w-5 text-primary`} />
               <Eye className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className={`text-3xl font-bold ${card.color}`}>{formatCurrency(card.value)}</div>
+              <div className={`text-3xl font-bold text-card-foreground`}>{formatCurrency(card.value)}</div>
               {card.showReset && (
                  <Button
-                    variant="outline"
+                    variant="gold"
                     size="sm"
                     onClick={card.onResetClick}
                     className="h-8 w-8 p-0"
                     title={`Reset ${card.key}`}
                   >
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-4 w-4 text-primary-foreground" />
                   </Button>
               )}
             </div>

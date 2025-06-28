@@ -4,38 +4,38 @@
 
 @layer base {
   :root {
-    --background: 231 48% 94%; /* Light Blue */
-    --foreground: 231 30% 25%; /* Darker, desaturated blue for text */
-    --card: 231 48% 98%; /* Even lighter blue, almost white, for cards */
-    --card-foreground: 231 30% 25%;
-    --popover: 231 48% 98%;
-    --popover-foreground: 231 30% 25%;
-    --primary: 231 48% 48%; /* Deep Blue */
-    --primary-foreground: 0 0% 98%; /* White text on primary */
-    --secondary: 231 40% 88%; /* Slightly darker than background */
-    --secondary-foreground: 231 30% 25%;
-    --muted: 231 40% 88%;
-    --muted-foreground: 231 30% 55%; /* Lighter text for muted */
-    --accent: 267 44% 55%; /* Purple */
-    --accent-foreground: 0 0% 98%; /* White text on accent */
-    --destructive: 0 84.2% 60.2%; /* Default destructive (red) */
-    --destructive-foreground: 0 0% 98%;
-    --border: 231 40% 80%; /* Border color */
-    --input: 231 40% 90%; /* Input background, slightly off background */
-    --ring: 231 48% 48%; /* Primary color for focus rings */
-    --chart-1: 231 48% 58%;
-    --chart-2: 267 44% 65%;
-    --chart-3: 210 50% 60%;
-    --chart-4: 20 80% 60%;
-    --chart-5: 150 50% 55%;
+    --background: 0 0% 100%; /* Pure white background */
+    --foreground: 0 0% 0%; /* Pure black text */
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 42 100% 50%; /* Gold primary color */
+    --primary-foreground: 0 0% 0%; /* Black text on gold */
+    --secondary: 42 20% 95%; /* Very light gold tint */
+    --secondary-foreground: 0 0% 0%;
+    --muted: 42 10% 96%; /* Light muted background */
+    --muted-foreground: 0 0% 45%; /* Dark gray for muted text */
+    --accent: 42 30% 90%; /* Light gold accent */
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 100%;
+    --border: 42 20% 85%; /* Light gold border */
+    --input: 0 0% 100%; /* White input background */
+    --ring: 42 100% 50%; /* Gold focus ring */
+    --chart-1: 42 100% 50%; /* Gold */
+    --chart-2: 42 80% 60%; /* Lighter gold */
+    --chart-3: 42 60% 70%; /* Even lighter gold */
+    --chart-4: 42 40% 80%; /* Very light gold */
+    --chart-5: 42 20% 90%; /* Extremely light gold */
     --radius: 0.5rem;
-    --gold: 42 100% 38%; /* #C28800 */
-    --wealth: 145 63% 61%; /* #4CAF50 */
-    --color-primary: #facc15;
-    --color-background: #fff;
-    --color-card: #fff;
-    --color-foreground: #222;
-    --color-gold: #bfa76a;
+    --gold: 42 100% 50%; /* #FFD700 - Pure gold */
+    --wealth: 145 63% 61%; /* #4CAF50 - Green for wealth */
+    --color-primary: #FFD700;
+    --color-background: #ffffff;
+    --color-card: #ffffff;
+    --color-foreground: #000000;
+    --color-gold: #FFD700;
     --color-green: #4ade80;
     --color-cream: #f5e9da;
   }
@@ -72,6 +72,44 @@
     --radius: 0.75rem;
     --color-background: #000;
   }
+
+  /* Light theme (default) */
+  .light, .default {
+    --background: 0 0% 100%; /* Pure white background */
+    --foreground: 0 0% 0%; /* Pure black text */
+    --card: 0 0% 100%; /* White cards */
+    --card-foreground: 0 0% 0%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
+    --primary: 42 100% 50%; /* Gold primary color */
+    --primary-foreground: 0 0% 0%; /* Black text on gold */
+    --secondary: 42 20% 95%; /* Very light gold tint */
+    --secondary-foreground: 0 0% 0%;
+    --muted: 42 10% 96%; /* Light muted background */
+    --muted-foreground: 0 0% 45%; /* Dark gray for muted text */
+    --accent: 42 30% 90%; /* Light gold accent */
+    --accent-foreground: 0 0% 0%;
+    --destructive: 0 84.2% 60.2%; /* Red for destructive actions */
+    --destructive-foreground: 0 0% 100%;
+    --border: 42 20% 85%; /* Light gold border */
+    --input: 0 0% 100%; /* White input background */
+    --ring: 42 100% 50%; /* Gold focus ring */
+    --chart-1: 42 100% 50%; /* Gold */
+    --chart-2: 42 80% 60%; /* Lighter gold */
+    --chart-3: 42 60% 70%; /* Even lighter gold */
+    --chart-4: 42 40% 80%; /* Very light gold */
+    --chart-5: 42 20% 90%; /* Extremely light gold */
+    --radius: 0.5rem;
+    --gold: 42 100% 50%; /* #FFD700 - Pure gold */
+    --wealth: 145 63% 61%; /* #4CAF50 - Green for wealth */
+    --color-primary: #FFD700;
+    --color-background: #ffffff;
+    --color-card: #ffffff;
+    --color-foreground: #000000;
+    --color-gold: #FFD700;
+    --color-green: #4ade80;
+    --color-cream: #f5e9da;
+  }
 }
 
 @layer base {
@@ -106,10 +144,10 @@
 }
 
 [data-theme="default"] {
-  --color-primary: #facc15;
-  --color-background: #fff;
-  --color-card: #fff;
-  --color-foreground: #222;
+  --color-primary: #FFD700;
+  --color-background: #ffffff;
+  --color-card: #ffffff;
+  --color-foreground: #000000;
 }
 [data-theme="dark"] {
   --color-primary: #facc15;
@@ -154,12 +192,24 @@ body, .bg-background {
   background-image: linear-gradient(to bottom, var(--tw-gradient-stops));
 }
 .from-background {
+  --tw-gradient-from: #ffffff;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(255,255,255,0));
+}
+.via-card {
+  --tw-gradient-stops: var(--tw-gradient-from), #fafafa, var(--tw-gradient-to, rgba(255,255,255,0));
+}
+.to-background {
+  --tw-gradient-to: #ffffff;
+}
+
+/* Dark theme specific gradients */
+.dark .from-background {
   --tw-gradient-from: #18181b;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(24,24,27,0));
 }
-.via-card {
+.dark .via-card {
   --tw-gradient-stops: var(--tw-gradient-from), #23272f, var(--tw-gradient-to, rgba(24,24,27,0));
 }
-.to-background {
+.dark .to-background {
   --tw-gradient-to: #18181b;
 }

@@ -1,21 +1,16 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { 
-  User, 
-  signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  sendPasswordResetEmail,
-  updateProfile,
-  signInWithPopup,
-  GoogleAuthProvider
-} from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { supabase } from '@/lib/supabaseClient';
+
+interface SupabaseUser {
+  id: string;
+  email: string | null;
+  displayName?: string | null;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: SupabaseUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName?: string) => Promise<void>;
@@ -34,61 +29,133 @@ export function useAuth() {
   return context;
 }
 
+// Helper function to create or update profile
+const createOrUpdateProfile = async (userId: string, email: string | null, displayName: string | null) => {
+  try {
+    // Try to insert a new profile, if it fails (already exists), update it
+    const { error: insertError } = await supabase
+      .from('profiles')
+      .insert({
+        id: userId,
+        email: email,
+        display_name: displayName || '',
+      });
+
+    if (insertError && insertError.code === '23505') {
+      // Profile already exists, update it
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          email: email,
+          display_name: displayName || '',
+        })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('Error updating profile:', updateError);
+      }
+    } else if (insertError) {
+      console.error('Error creating profile:', insertError);
+    }
+  } catch (error) {
+    console.error('Error in createOrUpdateProfile:', error);
+  }
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const session = supabase.auth.getSession().then(({ data }) => {
+      const sessionUser = data.session?.user;
+      if (sessionUser) {
+        setUser({
+          id: sessionUser.id,
+          email: sessionUser.email ?? null,
+          displayName: sessionUser.user_metadata?.displayName ?? null,
+        });
+        // Create/update profile for existing session
+        createOrUpdateProfile(
+          sessionUser.id,
+          sessionUser.email ?? null,
+          sessionUser.user_metadata?.displayName ?? null
+        );
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
-
-    return unsubscribe;
+    const { data: listener } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const sessionUser = session?.user;
+      if (sessionUser) {
+        setUser({
+          id: sessionUser.id,
+          email: sessionUser.email ?? null,
+          displayName: sessionUser.user_metadata?.displayName ?? null,
+        });
+        // Create/update profile when auth state changes
+        await createOrUpdateProfile(
+          sessionUser.id,
+          sessionUser.email ?? null,
+          sessionUser.user_metadata?.displayName ?? null
+        );
+      } else {
+        setUser(null);
+      }
+    });
+    return () => {
+      listener.subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      throw error;
+    const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+    
+    // Create/update profile after successful sign in
+    if (data.user) {
+      await createOrUpdateProfile(
+        data.user.id,
+        data.user.email ?? null,
+        data.user.user_metadata?.displayName ?? null
+      );
     }
   };
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      if (displayName && userCredential.user) {
-        await updateProfile(userCredential.user, { displayName });
-      }
-    } catch (error) {
-      throw error;
+    const { error, data } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { displayName },
+      },
+    });
+    if (error) throw error;
+    
+    // Create profile after successful sign up
+    if (data.user) {
+      await createOrUpdateProfile(
+        data.user.id,
+        data.user.email ?? null,
+        displayName ?? null
+      );
     }
   };
 
   const logout = async () => {
-    try {
-      await signOut(auth);
-    } catch (error) {
-      throw error;
-    }
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   const resetPassword = async (email: string) => {
-    try {
-      await sendPasswordResetEmail(auth, email);
-    } catch (error) {
-      throw error;
-    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) throw error;
   };
 
   const signInWithGoogle = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      throw error;
-    }
+    const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+    if (error) throw error;
   };
 
   const value = {

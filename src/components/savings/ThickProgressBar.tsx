@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 
 interface ProgressProps {
@@ -5,15 +7,16 @@ interface ProgressProps {
 }
 
 export const Progress: React.FC<ProgressProps> = ({ value }) => {
+  const clampedValue = Math.min(100, Math.max(0, value));
+  
   return (
-    <div className="w-full h-6 bg-muted rounded-full overflow-hidden shadow-inner relative">
-      <div
-        className="h-full bg-gradient-to-r from-primary to-accent rounded-full transition-all duration-500"
-        style={{ width: `${value}%` }}
+    <div className="w-full bg-muted rounded-full h-3 overflow-hidden">
+      <div 
+        className="h-full bg-primary transition-all duration-300 ease-out"
+        style={{ width: `${clampedValue}%` }}
       />
-      <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-primary-foreground">
-        {value}%
-      </div>
     </div>
   );
-}; 
+};
+
+export default Progress; 

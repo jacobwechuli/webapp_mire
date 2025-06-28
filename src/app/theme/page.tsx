@@ -1,23 +1,24 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 
 const themes = [
   {
     key: 'default',
-    name: 'Default',
-    preview: 'A modern, balanced look.'
+    name: 'Light Mode',
+    preview: 'Clean white background with black text and gold accents.'
   },
   {
     key: 'dark',
-    name: 'Dark',
-    preview: 'Classic dark mode.'
+    name: 'True Black',
+    preview: 'Classic AMOLED black with gold highlights.'
   },
   {
     key: 'green',
     name: 'Green',
-    preview: 'Fresh, vibrant green.'
+    preview: 'Fresh, vibrant green theme.'
   }
 ];
 
@@ -46,6 +47,15 @@ export default function ThemePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background py-12">
+      <div className="w-full max-w-3xl mb-6">
+        <Button 
+          variant="outline" 
+          onClick={() => router.push('/overview')}
+          className="mb-4"
+        >
+          ← Back to Overview
+        </Button>
+      </div>
       <h1 className="text-4xl font-bold mb-8 text-foreground">Choose a Theme</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-3xl">
         {themes.map(theme => (
@@ -73,10 +83,10 @@ export default function ThemePage() {
 function getThemePreviewColor(key: string) {
   switch (key) {
     case 'dark':
-      return 'linear-gradient(90deg, #18181b 0%, #27272a 100%)';
+      return 'linear-gradient(90deg, #000000 0%, #1a1a1a 100%)';
     case 'green':
       return 'linear-gradient(90deg, #4ade80 0%, #166534 100%)';
     default:
-      return 'linear-gradient(90deg, #facc15 0%, #a3a3a3 100%)';
+      return 'linear-gradient(90deg, #ffffff 0%, #f5f5f5 100%)';
   }
 } 

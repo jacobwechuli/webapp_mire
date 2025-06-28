@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, Wand2, AlertCircle } from 'lucide-react'; // Removed CheckCircle as it was used for success toast
+import { Loader2, Wand2, AlertCircle, Sparkles, Brain, RefreshCw } from 'lucide-react';
 import { Transaction } from '@/lib/types';
 import { useToast } from "@/hooks/use-toast";
 
@@ -89,7 +89,6 @@ const AiBudgetAdvisor: React.FC<AiBudgetAdvisorProps> = ({ transactions }) => {
         return;
     }
 
-
     const input: SuggestBudgetInput = {
       income: totalIncome,
       expenses: categorizedExpenses,
@@ -98,7 +97,6 @@ const AiBudgetAdvisor: React.FC<AiBudgetAdvisorProps> = ({ transactions }) => {
     try {
       const result = await getBudgetSuggestions(input);
       setSuggestions(result);
-      // Success toast removed as per guideline: "Use toast components for only displaying errors"
     } catch (err) {
       console.error("AI Budget Suggestion Error:", err);
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
@@ -114,25 +112,33 @@ const AiBudgetAdvisor: React.FC<AiBudgetAdvisorProps> = ({ transactions }) => {
   };
 
   return (
-    <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className="bg-background text-foreground border border-border shadow-lg">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold text-primary flex items-center">
-          <Wand2 className="mr-2 h-6 w-6" /> AI Budget Advisor
+        <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
+          <Sparkles className="h-6 w-6 text-primary" /> AI Budget Advisor
         </CardTitle>
-        <CardDescription>Get personalized tips from our AI to optimize your savings.</CardDescription>
+        <CardDescription className="text-muted-foreground">
+          Get personalized tips from our AI to optimize your savings.
+        </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <Button onClick={handleGetSuggestions} disabled={isLoading} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
+      <CardContent>
+        <Button
+          variant="default"
+          className="w-full mt-2 text-primary-foreground font-bold bg-primary hover:bg-primary/90"
+          onClick={handleGetSuggestions}
+          disabled={isLoading}
+        >
           {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <span className="animate-pulse">Loading...</span>
           ) : (
-            <Wand2 className="mr-2 h-4 w-4" />
+            <>
+              <Sparkles className="mr-2 h-5 w-5 text-primary-foreground" /> Get AI Budget Tips
+            </>
           )}
-          {isLoading ? 'Generating Tips...' : 'Get AI Budget Tips'}
         </Button>
 
         {error && (
-          <Alert variant="destructive">
+          <Alert variant="destructive" className="mt-4">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
@@ -140,18 +146,16 @@ const AiBudgetAdvisor: React.FC<AiBudgetAdvisorProps> = ({ transactions }) => {
         )}
 
         {suggestions && suggestions.suggestions.length > 0 && (
-          <div className="space-y-3 pt-4">
-            <h3 className="text-lg font-semibold text-foreground">Here are your AI-powered suggestions:</h3>
-            <ul className="list-disc list-inside space-y-2 pl-2 text-sm text-muted-foreground">
-              {suggestions.suggestions.map((suggestion, index) => (
-                <li key={index}>
-                  <strong className="text-foreground">{suggestion.category}:</strong> {suggestion.suggestion}
-                </li>
+          <div className="mt-6 bg-accent p-4 rounded-lg text-card-foreground border border-border">
+            <h3 className="font-semibold mb-2 text-card-foreground">AI Tips:</h3>
+            <ul className="list-disc list-inside space-y-1">
+              {suggestions.suggestions.map((suggestion, idx) => (
+                <li key={idx} className="text-muted-foreground">{suggestion.suggestion}</li>
               ))}
             </ul>
           </div>
         )}
-         {suggestions && suggestions.suggestions.length === 0 && (
+        {suggestions && suggestions.suggestions.length === 0 && (
           <p className="text-muted-foreground text-sm pt-2">The AI couldn't find specific suggestions with the current data. Try adding more transaction details.</p>
         )}
       </CardContent>

@@ -22,11 +22,11 @@ const SavingsBarChart = ({ goals }: { goals: any[] }) => {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} margin={{ top: 16, right: 16, left: 8, bottom: 8 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis />
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <XAxis dataKey="month" stroke="#666" />
+        <YAxis stroke="#666" />
         <Tooltip formatter={v => `$${v}`} />
-        <Bar dataKey="total" fill="#3F51B5" radius={[8, 8, 0, 0]} />
+        <Bar dataKey="total" fill="#FFD700" radius={[8, 8, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
