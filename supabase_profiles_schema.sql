@@ -1,7 +1,7 @@
 -- Create profiles table
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  full_name TEXT,
+  display_name TEXT,
   email TEXT,
   date_of_birth DATE,
   phone TEXT,
@@ -44,7 +44,7 @@ CREATE TRIGGER update_profiles_updated_at
 CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, email, full_name)
+  INSERT INTO profiles (id, email, display_name)
   VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'displayName');
   RETURN NEW;
 END;
