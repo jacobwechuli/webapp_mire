@@ -70,7 +70,7 @@ GoldPlus is a modern web-based personal finance management application built wit
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/jacobwechuli/webapp_mire
    cd webapp_mire
    ```
 
