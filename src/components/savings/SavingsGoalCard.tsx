@@ -6,19 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/savings/ThickProgressBar";
 import { Calendar, PiggyBank, PlusCircle } from "lucide-react";
 import AddToGoalModal from "@/components/savings/AddToGoalModal";
-
-interface SavingsGoal {
-  id: string;
-  item: string;
-  amount: number;
-  targetDate: string;
-  saved: number;
-  history: { date: string; amount: number }[];
-}
+import { FirebaseSavingsGoal } from "@/lib/firebaseDataStructure";
 
 interface SavingsGoalCardProps {
-  goal: SavingsGoal;
-  onUpdate: (goal: SavingsGoal) => void;
+  goal: FirebaseSavingsGoal;
+  onUpdate: (goal: FirebaseSavingsGoal) => void;
 }
 
 const SavingsGoalCard: React.FC<SavingsGoalCardProps> = ({ goal, onUpdate }) => {

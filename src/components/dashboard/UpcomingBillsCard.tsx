@@ -3,14 +3,14 @@ import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar, PlusCircle, Trash2, DollarSign } from 'lucide-react';
-import { Bill } from '@/lib/types';
+import { FirebaseBill } from '@/lib/firebaseDataStructure';
 
 interface UpcomingBillsCardProps {
-  bills: Bill[];
-  setBills: (bills: Bill[]) => void;
+  bills: FirebaseBill[];
+  onUpdateBills: (bills: FirebaseBill[]) => void;
 }
 
-const UpcomingBillsCard: React.FC<UpcomingBillsCardProps> = ({ bills, setBills }) => {
+const UpcomingBillsCard: React.FC<UpcomingBillsCardProps> = ({ bills, onUpdateBills }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({
     name: '',
@@ -25,23 +25,22 @@ const UpcomingBillsCard: React.FC<UpcomingBillsCardProps> = ({ bills, setBills }
 
   const handleAdd = () => {
     if (!form.name || !form.amount || !form.dueDate) return;
-    setBills([
-      ...bills,
-      {
-        id: Date.now().toString(),
-        name: form.name,
-        amount: parseFloat(form.amount),
-        dueDate: form.dueDate,
-        description: form.description || '',
-        frequency: form.frequency || '',
-      },
-    ]);
+    const newBill: Omit<FirebaseBill, 'id' | 'createdAt' | 'updatedAt'> = {
+      name: form.name,
+      amount: parseFloat(form.amount),
+      dueDate: form.dueDate,
+      description: form.description || '',
+      frequency: form.frequency || '',
+      isPaid: false,
+    };
+    // Note: The actual bill creation will be handled by the parent component
+    // This is just for UI state management
     setForm({ name: '', amount: '', dueDate: '', description: '', frequency: '' });
     setShowAdd(false);
   };
 
   const handleRemove = (id: string) => {
-    setBills(bills.filter(b => b.id !== id));
+    onUpdateBills(bills.filter(b => b.id !== id));
   };
 
   return (

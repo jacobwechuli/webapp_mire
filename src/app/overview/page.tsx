@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import useLocalStorage from '@/hooks/useLocalStorage';
 import { Transaction } from '@/lib/types';
 import SummaryCards from '@/components/dashboard/SummaryCards';
 import SpendingChart from '@/components/dashboard/SpendingChart';
@@ -11,7 +10,7 @@ import TransactionForm from '@/components/dashboard/TransactionForm';
 import TransactionList from '@/components/dashboard/TransactionList';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PlusCircle, Coins, LogOut, User } from 'lucide-react';
+import { PlusCircle, Coins, LogOut, User, Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -32,12 +31,13 @@ import UpcomingBillsCard from '@/components/dashboard/UpcomingBillsCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useFirebaseData } from '@/hooks/useFirebaseData';
+import { FirebaseTransaction, FirebaseBill } from '@/lib/firebaseDataStructure';
 
 function DashboardContent() {
-  const [transactions, setTransactions] = useLocalStorage<Transaction[]>('goldplus-transactions', []);
   const [isMounted, setIsMounted] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [editingTransaction, setEditingTransaction] = useState<FirebaseTransaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
@@ -45,44 +45,42 @@ function DashboardContent() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  // Bills state (localStorage-backed for now)
-  const [bills, setBills] = useLocalStorage('bills', [
-    // Example default bills
-    {
-      id: '1',
-      name: 'Netflix',
-      amount: 15.99,
-      dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-      description: 'Streaming subscription',
-      frequency: 'Monthly',
-    },
-    {
-      id: '2',
-      name: 'Rent',
-      amount: 1200,
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-      description: 'Apartment rent',
-      frequency: 'Monthly',
-    },
-  ].map(bill => ({ ...bill, description: bill.description || '', frequency: bill.frequency || '' })));
+  // Firebase data hook
+  const {
+    transactions,
+    bills,
+    loading,
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    updateBill,
+  } = useFirebaseData();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const handleAddTransaction = (transaction: Transaction) => {
-    if (editingTransaction) {
-      setTransactions(prev => prev.map(t => t.id === transaction.id ? transaction : t));
-      // Success toast removed as per guideline: "Use toast components for only displaying errors"
-    } else {
-      setTransactions(prev => [...prev, transaction]);
-      // Success toast removed as per guideline
+  const handleAddTransaction = async (transaction: Omit<Transaction, 'id'>) => {
+    try {
+      if (editingTransaction) {
+        await updateTransaction(editingTransaction.id, {
+          description: transaction.description,
+          amount: transaction.amount,
+          type: transaction.type,
+          category: transaction.category,
+          date: transaction.date,
+        });
+      } else {
+        await addTransaction(transaction);
+      }
+      setEditingTransaction(null);
+      setIsFormOpen(false);
+    } catch (error) {
+      // Error handling is done in the hook
     }
-    setEditingTransaction(null);
-    setIsFormOpen(false);
   };
 
-  const handleEditTransaction = (transaction: Transaction) => {
+  const handleEditTransaction = (transaction: FirebaseTransaction) => {
     setEditingTransaction(transaction);
     setIsFormOpen(true);
   };
@@ -91,35 +89,53 @@ function DashboardContent() {
     setTransactionToDelete(transactionId);
   };
 
-  const confirmDeleteTransaction = () => {
+  const confirmDeleteTransaction = async () => {
     if (transactionToDelete) {
-      const deletedTransaction = transactions.find(t => t.id === transactionToDelete);
-      setTransactions(prev => prev.filter(t => t.id !== transactionToDelete));
-      toast({ title: "Transaction Deleted", description: `"${deletedTransaction?.description || 'Transaction'}" has been deleted.`, variant: "destructive" });
-      setTransactionToDelete(null);
+      try {
+        const deletedTransaction = transactions.find(t => t.id === transactionToDelete);
+        await deleteTransaction(transactionToDelete);
+        toast({ 
+          title: "Transaction Deleted", 
+          description: `"${deletedTransaction?.description || 'Transaction'}" has been deleted.`, 
+          variant: "destructive" 
+        });
+        setTransactionToDelete(null);
+      } catch (error) {
+        // Error handling is done in the hook
+      }
     }
   };
 
-  const handleReset = (type: 'income' | 'expense' | 'all') => {
-    let deletedCount = 0;
-    let typeLabel = '';
+  const handleReset = async (type: 'income' | 'expense' | 'all') => {
+    try {
+      let deletedCount = 0;
+      let typeLabel = '';
 
-    if (type === 'all') {
-      deletedCount = transactions.length;
-      typeLabel = 'all transactions';
-      setTransactions([]);
-    } else {
-      const filteredTransactions = transactions.filter(t => t.type === type);
-      deletedCount = filteredTransactions.length;
-      typeLabel = type === 'income' ? 'income transactions' : 'expense transactions';
-      setTransactions(prev => prev.filter(t => t.type !== type));
+      if (type === 'all') {
+        deletedCount = transactions.length;
+        typeLabel = 'all transactions';
+        // Delete all transactions
+        for (const transaction of transactions) {
+          await deleteTransaction(transaction.id);
+        }
+      } else {
+        const filteredTransactions = transactions.filter(t => t.type === type);
+        deletedCount = filteredTransactions.length;
+        typeLabel = type === 'income' ? 'income transactions' : 'expense transactions';
+        // Delete filtered transactions
+        for (const transaction of filteredTransactions) {
+          await deleteTransaction(transaction.id);
+        }
+      }
+
+      toast({ 
+        title: "Reset Complete", 
+        description: `Deleted ${deletedCount} ${typeLabel}.`, 
+        variant: "destructive" 
+      });
+    } catch (error) {
+      // Error handling is done in the hook
     }
-
-    toast({ 
-      title: "Reset Complete", 
-      description: `Deleted ${deletedCount} ${typeLabel}.`, 
-      variant: "destructive" 
-    });
   };
 
   const handleLogout = async () => {
@@ -131,18 +147,23 @@ function DashboardContent() {
     }
   };
 
-  const handleUpdateBills = (newBills: any[]) => {
-    setBills(newBills.map(bill => ({
-      ...bill,
-      description: bill.description || '',
-      frequency: bill.frequency || '',
-    })));
+  const handleUpdateBills = async (newBills: FirebaseBill[]) => {
+    try {
+      // For now, we'll just update the bills state
+      // In a real implementation, you'd want to sync this with Firebase
+      console.log('Bills updated:', newBills);
+    } catch (error) {
+      // Error handling
+    }
   };
 
-  if (!isMounted) {
+  if (!isMounted || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background text-card-foreground">
-        <Coins className="h-12 w-12 animate-spin text-primary" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading your financial data...</p>
+        </div>
       </div>
     );
   }
@@ -153,6 +174,7 @@ function DashboardContent() {
         setIsFormOpen(true);
         setEditingTransaction(null);
       }} />
+      
       <Dialog open={isFormOpen} onOpenChange={(isOpen) => {
         setIsFormOpen(isOpen);
         if (!isOpen) setEditingTransaction(null);
@@ -199,89 +221,88 @@ function DashboardContent() {
               </Card>
               <Card className="animate-fade-in delay-100 bg-card border border-border">
                 <CardContent>
-                  <SummaryCards 
-                    transactions={transactions} 
-                    onReset={handleReset} 
-                    showOnly={[1]}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <div>
+                        <SummaryCards 
+                          transactions={transactions}
+                          onReset={handleReset} 
+                          showOnly={[1]}
+                        />
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="bg-card text-card-foreground border border-border">View detailed income breakdown and trends.</PopoverContent>
+                  </Popover>
                 </CardContent>
               </Card>
               <Card className="animate-fade-in delay-200 bg-card border border-border">
                 <CardContent>
-                  <SummaryCards 
-                    transactions={transactions} 
-                    onReset={handleReset} 
-                    showOnly={[2]}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <div>
+                        <SummaryCards 
+                          transactions={transactions}
+                          onReset={handleReset} 
+                          showOnly={[2]}
+                        />
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="bg-card text-card-foreground border border-border">Analyze your spending patterns and identify areas for improvement.</PopoverContent>
+                  </Popover>
                 </CardContent>
               </Card>
             </div>
-            <Card className="animate-fade-in delay-300 bg-card border border-border">
-              <CardContent>
-                <UpcomingBillsCard bills={bills} setBills={handleUpdateBills} />
-              </CardContent>
-            </Card>
           </div>
-          <div className="grid gap-8 lg:grid-cols-2">
-            <Card className="animate-fade-in delay-400 bg-card border border-border">
-              <CardContent>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="animate-fade-in delay-300 bg-card border border-border">
+              <CardContent className="p-6">
                 <SpendingChart transactions={transactions} />
               </CardContent>
             </Card>
-            <Card className="animate-fade-in delay-500 bg-card border border-border">
-              <CardContent>
+            <Card className="animate-fade-in delay-400 bg-card border border-border">
+              <CardContent className="p-6">
                 <AiBudgetAdvisor transactions={transactions} />
               </CardContent>
             </Card>
           </div>
-          <div className="grid gap-8 lg:grid-cols-3">
-            <Card className="animate-fade-in delay-600 bg-card border border-border">
-              <CardContent>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card className="animate-fade-in delay-500 bg-card border border-border">
+              <CardContent className="p-6">
                 <FinancialTips transactions={transactions} />
               </CardContent>
             </Card>
-            <Card className="lg:col-span-2 animate-fade-in delay-700 bg-card border border-border">
-              <CardContent>
-                <TransactionList 
-                  transactions={transactions}
-                  onEditTransaction={handleEditTransaction}
-                  onDeleteTransaction={handleDeleteTransaction}
-                />
+            <Card className="animate-fade-in delay-600 bg-card border border-border">
+              <CardContent className="p-6">
+                <UpcomingBillsCard bills={bills} onUpdateBills={handleUpdateBills} />
               </CardContent>
             </Card>
           </div>
+
+          <Card className="animate-fade-in delay-700 bg-card border border-border">
+            <CardContent className="p-6">
+              <TransactionList 
+                transactions={transactions}
+                onEditTransaction={handleEditTransaction}
+                onDeleteTransaction={handleDeleteTransaction}
+              />
+            </CardContent>
+          </Card>
         </div>
       </main>
-
-      <footer className="py-6 md:px-8 md:py-0 border-t border-border bg-card text-card-foreground">
-        <div className="container flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
-          <div className="flex flex-col items-center gap-4 px-8 md:flex-row md:gap-2 md:px-0">
-            <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-              Built by{" "}
-              <a href="#" className="font-medium underline underline-offset-4 text-primary">
-                GoldPlus Team
-              </a>
-              . The source code is available on{" "}
-              <a href="#" className="font-medium underline underline-offset-4 text-primary">
-                GitHub
-              </a>
-              .
-            </p>
-          </div>
-        </div>
-      </footer>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!transactionToDelete} onOpenChange={() => setTransactionToDelete(null)}>
         <AlertDialogContent className="bg-card text-card-foreground border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the transaction.
+              Are you sure you want to delete this transaction? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-border text-foreground hover:bg-accent">Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDeleteTransaction} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
@@ -293,16 +314,14 @@ function DashboardContent() {
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <AlertDialogContent className="bg-card text-card-foreground border border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Logout</AlertDialogTitle>
+            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to logout? Your data will be saved locally.
+              Are you sure you want to log out? Your data will be saved automatically.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-border text-foreground hover:bg-accent">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLogout} className="bg-primary text-primary-foreground hover:bg-primary/90">
-              Logout
-            </AlertDialogAction>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>Logout</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

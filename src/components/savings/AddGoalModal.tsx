@@ -5,11 +5,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FirebaseSavingsGoal } from "@/lib/firebaseDataStructure";
 
 interface AddGoalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddGoal: (goal: any) => void;
+  onAddGoal: (goal: Omit<FirebaseSavingsGoal, 'id' | 'createdAt' | 'updatedAt'>) => void;
 }
 
 const AddGoalModal: React.FC<AddGoalModalProps> = ({ open, onOpenChange, onAddGoal }) => {
@@ -22,7 +23,6 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({ open, onOpenChange, onAddGo
     e.preventDefault();
     setLoading(true);
     onAddGoal({
-      id: Date.now().toString(),
       item,
       amount: Number(amount),
       targetDate,

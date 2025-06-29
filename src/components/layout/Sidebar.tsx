@@ -1,9 +1,10 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
   { name: 'Savings', href: '/savings', icon: PiggyBank },
@@ -19,6 +20,17 @@ const Sidebar: React.FC<SidebarProps> = ({ userName }) => {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      router.push('/login');
+    } catch (error) {
+      // Optionally handle error
+    }
+  };
 
   return (
     <>
@@ -52,13 +64,15 @@ const Sidebar: React.FC<SidebarProps> = ({ userName }) => {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 h-full bg-card text-card-foreground flex flex-col transition-all duration-300 z-40 border-r border-border',
+          'fixed top-0 left-0 h-full bg-card text-card-foreground flex flex-col transition-all duration-300 border-r border-border',
           // Mobile styles
           'w-72',
           mobileOpen ? 'translate-x-0' : '-translate-x-full',
           // Desktop styles
           'md:translate-x-0 md:static',
-          desktopCollapsed ? 'md:w-20' : 'md:w-64'
+          desktopCollapsed ? 'md:w-20' : 'md:w-64',
+          // Ensure sidebar is above header
+          'z-50'
         )}
       >
         <div className="flex items-center px-8 py-8 md:px-4 md:justify-center">
@@ -93,12 +107,46 @@ const Sidebar: React.FC<SidebarProps> = ({ userName }) => {
             </Link>
           ))}
         </nav>
+
+        {/* Account actions for mobile only */}
+        {user && (
+          <div className="md:hidden px-8 pb-8 mt-auto flex flex-col gap-2 border-t border-border pt-4">
+            <button
+              className="flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium hover:bg-accent hover:text-card-foreground text-muted-foreground transition-all duration-300"
+              onClick={() => { setMobileOpen(false); router.push('/profile'); }}
+            >
+              <User className="h-6 w-6 flex-shrink-0" />
+              <span>Profile</span>
+            </button>
+            <button
+              className="flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium hover:bg-accent hover:text-card-foreground text-muted-foreground transition-all duration-300"
+              onClick={() => { setMobileOpen(false); router.push('/theme'); }}
+            >
+              <Palette className="h-6 w-6 flex-shrink-0" />
+              <span>Theme</span>
+            </button>
+            <button
+              className="flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium hover:bg-accent hover:text-primary transition-all duration-300 text-primary"
+              onClick={() => { setMobileOpen(false); router.push('#'); }}
+            >
+              <ArrowUpCircle className="h-6 w-6 flex-shrink-0" />
+              <span>Upgrade Plan</span>
+            </button>
+            <button
+              className="flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium hover:bg-accent hover:text-destructive transition-all duration-300 text-destructive"
+              onClick={() => { setMobileOpen(false); handleLogout(); }}
+            >
+              <LogOut className="h-6 w-6 flex-shrink-0" />
+              <span>Logout</span>
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-30 md:hidden"
+          className="fixed inset-0 bg-black/30 z-50 md:hidden"
           onClick={() => setMobileOpen(false)}
           aria-label="Close sidebar overlay"
         />

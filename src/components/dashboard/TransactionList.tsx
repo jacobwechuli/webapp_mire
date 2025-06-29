@@ -1,17 +1,17 @@
 "use client";
 
 import React from 'react';
-import { Transaction, TransactionType } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { List, TrendingUp, TrendingDown, Edit3, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { FirebaseTransaction } from '@/lib/firebaseDataStructure';
 
 interface TransactionListProps {
-  transactions: Transaction[];
-  onEditTransaction: (transaction: Transaction) => void;
+  transactions: FirebaseTransaction[];
+  onEditTransaction: (transaction: FirebaseTransaction) => void;
   onDeleteTransaction: (transactionId: string) => void;
 }
 

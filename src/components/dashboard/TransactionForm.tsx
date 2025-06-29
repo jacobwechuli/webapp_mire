@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { format, parseISO } from 'date-fns';
 import { Transaction, TransactionType, INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/types';
+import { FirebaseTransaction } from '@/lib/firebaseDataStructure';
 import { cn } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
@@ -27,8 +28,8 @@ const formSchema = z.object({
 type TransactionFormValues = z.infer<typeof formSchema>;
 
 interface TransactionFormProps {
-  onAddTransaction: (transaction: Transaction) => void;
-  existingTransaction?: Transaction | null; // For editing, optional
+  onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  existingTransaction?: FirebaseTransaction | null; // For editing, optional
   onClose: () => void;
 }
 
@@ -37,8 +38,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
 
   const defaultValues = existingTransaction
     ? {
-        ...existingTransaction,
+        description: existingTransaction.description,
         amount: Number(existingTransaction.amount),
+        type: existingTransaction.type,
+        category: existingTransaction.category,
         date: parseISO(existingTransaction.date),
       }
     : {
@@ -60,8 +63,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
     if (existingTransaction) {
       setSelectedType(existingTransaction.type);
       form.reset({
-        ...existingTransaction,
+        description: existingTransaction.description,
         amount: Number(existingTransaction.amount),
+        type: existingTransaction.type,
+        category: existingTransaction.category,
         date: parseISO(existingTransaction.date),
       });
     }
@@ -69,10 +74,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
 
 
   const onSubmit = (data: TransactionFormValues) => {
-    const newTransaction: Transaction = {
-      id: existingTransaction?.id || Date.now().toString(),
-      ...data,
+    const newTransaction: Omit<Transaction, 'id'> = {
+      description: data.description,
       amount: Number(data.amount),
+      type: data.type,
+      category: data.category,
       date: format(data.date, 'yyyy-MM-dd'), // Store date as ISO string
     };
     onAddTransaction(newTransaction);

@@ -5,21 +5,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-interface SavingsGoal {
-  id: string;
-  item: string;
-  amount: number;
-  targetDate: string;
-  saved: number;
-  history: { date: string; amount: number }[];
-}
+import { FirebaseSavingsGoal } from "@/lib/firebaseDataStructure";
 
 interface AddToGoalModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  goal: SavingsGoal;
-  onUpdate: (goal: SavingsGoal) => void;
+  goal: FirebaseSavingsGoal;
+  onUpdate: (goal: FirebaseSavingsGoal) => void;
 }
 
 const AddToGoalModal: React.FC<AddToGoalModalProps> = ({ open, onOpenChange, goal, onUpdate }) => {
