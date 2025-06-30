@@ -21,9 +21,9 @@ export default function ProfilePage() {
   const { profile, loading, error, updateProfile, refetch } = useProfile();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({
-    display_name: '',
+    displayName: '',
     email: '',
-    date_of_birth: '',
+    dateOfBirth: '',
     phone: '',
     country: '',
   });
@@ -32,9 +32,9 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) {
       setForm({
-        display_name: profile.display_name || '',
+        displayName: profile.displayName || '',
         email: profile.email || '',
-        date_of_birth: profile.date_of_birth || '',
+        dateOfBirth: profile.dateOfBirth || '',
         phone: profile.phone || '',
         country: profile.country || '',
       });
@@ -48,8 +48,8 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     await updateProfile({
-      display_name: form.display_name,
-      date_of_birth: form.date_of_birth,
+      displayName: form.displayName,
+      dateOfBirth: form.dateOfBirth,
       phone: form.phone,
       country: form.country,
     });
@@ -57,7 +57,7 @@ export default function ProfilePage() {
     refetch();
   };
 
-  const age = calculateAge(editing ? form.date_of_birth : profile?.date_of_birth || '');
+  const age = calculateAge(editing ? form.dateOfBirth : profile?.dateOfBirth || '');
 
   if (loading) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
   if (error) return <div className="flex justify-center items-center min-h-screen text-red-500">{error}</div>;
@@ -82,13 +82,13 @@ export default function ProfilePage() {
             {editing ? (
               <input
                 type="text"
-                name="display_name"
-                value={form.display_name}
+                name="displayName"
+                value={form.displayName}
                 onChange={handleChange}
                 className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
               />
             ) : (
-              <span>{profile?.display_name}</span>
+              <span>{profile?.displayName}</span>
             )}
           </div>
           <div className="flex flex-col gap-2">
@@ -104,13 +104,13 @@ export default function ProfilePage() {
             {editing ? (
               <input
                 type="date"
-                name="date_of_birth"
-                value={form.date_of_birth}
+                name="dateOfBirth"
+                value={form.dateOfBirth}
                 onChange={handleChange}
                 className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
               />
             ) : (
-              <span>{profile?.date_of_birth}</span>
+              <span>{profile?.dateOfBirth}</span>
             )}
           </div>
           <div className="flex flex-col gap-2">
@@ -146,9 +146,9 @@ export default function ProfilePage() {
               <>
                 <Button variant="gold" size="lg" className="w-full" onClick={handleSave}>Save</Button>
                 <Button variant="outline" size="lg" className="w-full" onClick={() => { setEditing(false); setForm({
-                  display_name: profile?.display_name || '',
+                  displayName: profile?.displayName || '',
                   email: profile?.email || '',
-                  date_of_birth: profile?.date_of_birth || '',
+                  dateOfBirth: profile?.dateOfBirth || '',
                   phone: profile?.phone || '',
                   country: profile?.country || '',
                 }); }}>Cancel</Button>

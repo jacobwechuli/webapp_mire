@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Profile } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/lib/supabaseClient';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 export function useProfile() {
   const { user } = useAuth();
@@ -14,24 +15,20 @@ export function useProfile() {
     if (!user?.id) return;
 
     try {
-      const { data, error: createError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          email: user.email ?? null,
-          display_name: user.displayName || '',
-        })
-        .select()
-        .single();
+      const userRef = doc(db, 'users', user.id);
+      const profileData = {
+        id: user.id,
+        email: user.email || '',
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
 
-      if (createError) {
-        console.error('Error creating profile:', createError);
-        throw createError;
-      }
-
-      return data;
+      await setDoc(userRef, profileData);
+      return profileData;
     } catch (error) {
-      console.error('Error in createProfile:', error);
+      console.error('Error creating profile:', error);
       throw error;
     }
   };
@@ -48,23 +45,17 @@ export function useProfile() {
       setError(null);
 
       // Try to fetch existing profile
-      const { data: existingProfile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single();
+      const userRef = doc(db, 'users', user.id);
+      const userDoc = await getDoc(userRef);
 
-      if (fetchError) {
-        if (fetchError.code === 'PGRST116') {
-          // Profile doesn't exist, create one
-          const newProfile = await createProfile();
-          setProfile(newProfile);
-          return;
-        }
-        throw fetchError;
+      if (!userDoc.exists()) {
+        // Profile doesn't exist, create one
+        const newProfile = await createProfile();
+        setProfile(newProfile as Profile);
+        return;
       }
 
-      setProfile(existingProfile);
+      setProfile(userDoc.data() as Profile);
     } catch (err) {
       console.error('Error fetching profile:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch profile');
@@ -79,20 +70,17 @@ export function useProfile() {
 
     try {
       setError(null);
+      const userRef = doc(db, 'users', user.id);
+      
+      const updateData = {
+        ...updates,
+        updatedAt: new Date().toISOString(),
+      };
 
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id)
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      setProfile(data);
-      return data;
+      await updateDoc(userRef, updateData);
+      
+      // Refresh profile data
+      await fetchProfile();
     } catch (err) {
       console.error('Error updating profile:', err);
       setError(err instanceof Error ? err.message : 'Failed to update profile');
@@ -100,7 +88,7 @@ export function useProfile() {
     }
   };
 
-  // Fetch profile when user changes
+  // Fetch profile on mount and when user changes
   useEffect(() => {
     fetchProfile();
   }, [user?.id]);

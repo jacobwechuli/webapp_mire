@@ -1,8 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Gliker:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  @font-face {
+    font-family: 'Gliker';
+    src: url('https://fonts.googleapis.com/css2?family=Gliker:wght@400;500;600;700;800;900&display=swap');
+    font-weight: 400 900;
+    font-style: normal;
+    font-display: swap;
+  }
+  
   :root {
     --background: 0 0% 100%; /* Pure white background */
     --foreground: 0 0% 0%; /* Pure black text */

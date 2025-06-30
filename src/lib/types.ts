@@ -20,13 +20,14 @@ export interface Bill {
 
 export interface Profile {
   id: string;
-  display_name: string | null;
+  displayName: string | null;
   email: string | null;
-  date_of_birth: string | null; // ISO date string
-  phone: string | null;
-  country: string | null;
-  created_at: string;
-  updated_at: string;
+  photoURL: string | null;
+  dateOfBirth?: string | null; // ISO date string
+  phone?: string | null;
+  country?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const INCOME_CATEGORIES = ['Salary', 'Bonus', 'Freelance', 'Investment', 'Gift', 'Other Income'];

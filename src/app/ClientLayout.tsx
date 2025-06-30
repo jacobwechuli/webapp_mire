@@ -8,7 +8,8 @@ import Sidebar from '@/components/layout/Sidebar';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from '@/components/layout/Footer';
 
@@ -49,22 +50,16 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     async function fetchProfileDisplayName() {
       if (user?.id) {
         try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('display_name')
-            .eq('id', user.id)
-            .single();
+          const userRef = doc(db, 'users', user.id);
+          const userDoc = await getDoc(userRef);
           
-          if (error) {
-            console.error('Error fetching profile:', error);
-            setProfileDisplayName(null);
-          } else if (data && data.display_name) {
-            setProfileDisplayName(data.display_name);
+          if (userDoc.exists() && userDoc.data().displayName) {
+            setProfileDisplayName(userDoc.data().displayName);
           } else {
             setProfileDisplayName(null);
           }
         } catch (error) {
-          console.error('Error in profile fetch:', error);
+          console.error('Error fetching profile:', error);
           setProfileDisplayName(null);
         }
       }

@@ -33,6 +33,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useFirebaseData } from '@/hooks/useFirebaseData';
 import { FirebaseTransaction, FirebaseBill } from '@/lib/firebaseDataStructure';
+import FloatingActionButton from '@/components/ui/floating-action-button';
 
 function DashboardContent() {
   const [isMounted, setIsMounted] = useState(false);
@@ -170,10 +171,7 @@ function DashboardContent() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-card-foreground">
-      <DashboardHeader onAddTransaction={() => {
-        setIsFormOpen(true);
-        setEditingTransaction(null);
-      }} />
+      <DashboardHeader />
       
       <Dialog open={isFormOpen} onOpenChange={(isOpen) => {
         setIsFormOpen(isOpen);
@@ -291,6 +289,14 @@ function DashboardContent() {
           </Card>
         </div>
       </main>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton 
+        onClick={() => {
+          setIsFormOpen(true);
+          setEditingTransaction(null);
+        }}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!transactionToDelete} onOpenChange={() => setTransactionToDelete(null)}>

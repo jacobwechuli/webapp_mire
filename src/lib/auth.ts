@@ -1,41 +1,24 @@
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { NextRequest } from 'next/server';
+import { auth } from './firebase';
+import { getAuth } from 'firebase-admin/auth';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
 
-// Create server-side Supabase client for API routes
-export const createServerSupabaseClient = async () => {
-  const cookieStore = await cookies();
+// Initialize Firebase Admin SDK for server-side operations
+let firebaseAdmin: any;
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: any) {
-          try {
-            cookieStore.set({ name, value, ...options });
-          } catch (error) {
-            // The `set` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-        remove(name: string, options: any) {
-          try {
-            cookieStore.set({ name, value: '', ...options });
-          } catch (error) {
-            // The `delete` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
-          }
-        },
-      },
-    }
-  );
-};
+if (!getApps().length) {
+  try {
+    firebaseAdmin = initializeApp({
+      credential: cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+    });
+  } catch (error) {
+    console.error('Failed to initialize Firebase Admin:', error);
+  }
+}
 
 // Verify JWT token from request headers
 export const verifyAuth = async (req: NextRequest) => {
@@ -48,29 +31,25 @@ export const verifyAuth = async (req: NextRequest) => {
   const token = authHeader.substring(7);
   
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
-    if (error || !user) {
-      return { user: null, error: 'Invalid token' };
+    if (!firebaseAdmin) {
+      return { user: null, error: 'Firebase Admin not initialized' };
     }
-    
-    return { user, error: null };
+
+    const decodedToken = await getAuth().verifyIdToken(token);
+    return { user: decodedToken, error: null };
   } catch (error) {
-    return { user: null, error: 'Token verification failed' };
+    console.error('Token verification failed:', error);
+    return { user: null, error: 'Invalid token' };
   }
 };
 
 // Get current user from session (for API routes)
-export const getCurrentUser = async () => {
+export const getCurrentUser = async (req: NextRequest) => {
   try {
-    const supabase = await createServerSupabaseClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
+    const { user, error } = await verifyAuth(req);
     if (error || !user) {
       return null;
     }
-    
     return user;
   } catch (error) {
     console.error('Error getting current user:', error);
@@ -78,13 +57,25 @@ export const getCurrentUser = async () => {
   }
 };
 
-// Check if user is authenticated
-export const requireAuth = async () => {
-  const user = await getCurrentUser();
-  
+// Require authentication middleware
+export const requireAuth = async (req: NextRequest) => {
+  const user = await getCurrentUser(req);
   if (!user) {
     throw new Error('Authentication required');
   }
-  
   return user;
+};
+
+// Helper function to get user ID from token
+export const getUserIdFromToken = async (token: string) => {
+  try {
+    if (!firebaseAdmin) {
+      return null;
+    }
+    const decodedToken = await getAuth().verifyIdToken(token);
+    return decodedToken.uid;
+  } catch (error) {
+    console.error('Error getting user ID from token:', error);
+    return null;
+  }
 }; 

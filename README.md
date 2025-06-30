@@ -12,14 +12,15 @@ GoldPlus is a modern web-based personal finance management application built wit
 - **AI Budget Tool**: AI-driven budget suggestions powered by Google Genkit to optimize savings
 - **Personalized Tips**: Custom financial advice based on individual spending habits
 - **Dashboard**: Comprehensive overview displaying spending, income, and savings at a glance
-- **Data Persistence**: Local storage integration for data retention
+- **Data Persistence**: Firebase Firestore integration for cloud data storage
 
 ### Technical Features
 - **Modern UI Components**: Built with Radix UI components for accessibility and consistency
 - **Responsive Design**: Fully responsive layout using Tailwind CSS
 - **Form Management**: Advanced form handling with React Hook Form and Zod validation
 - **Theme Support**: Light/dark mode support with next-themes
-- **Database Integration**: Supabase integration for cloud data storage
+- **Authentication**: Firebase Authentication with Google sign-in support
+- **Database Integration**: Firebase Firestore for cloud data storage
 - **Animations**: Smooth transitions and animations using Framer Motion
 
 ## 🎨 Design System
@@ -50,7 +51,8 @@ GoldPlus is a modern web-based personal finance management application built wit
 
 ### Backend & AI
 - **AI Integration**: Google Genkit 1.8.0 for AI-powered features
-- **Database**: Supabase with SSR support
+- **Authentication**: Firebase Authentication with Google OAuth
+- **Database**: Firebase Firestore
 - **Email**: Nodemailer 7.0.3
 
 ### Development Tools
@@ -65,6 +67,7 @@ GoldPlus is a modern web-based personal finance management application built wit
 ### Prerequisites
 - Node.js (version 20 or higher)
 - npm package manager
+- Firebase project
 
 ### Installation Steps
 
@@ -79,16 +82,27 @@ GoldPlus is a modern web-based personal finance management application built wit
    npm install
    ```
 
-3. **Environment Setup**
-   Create a `.env.local` file and configure:
-   - Supabase credentials
-   - Google AI API keys
-   - Other environment variables as needed
+3. **Firebase Setup**
+   - Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
+   - Enable Authentication and add Google as sign-in provider
+   - Create a Firestore database
+   - Get your Firebase configuration from Project Settings
 
-4. **Database Setup**
-   Run the Supabase schema:
+4. **Environment Setup**
+   Create a `.env.local` file and configure:
    ```bash
-   # Use the provided supabase_profiles_schema.sql
+   # Firebase Configuration
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key_here
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id_here
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id_here
+
+   # Firebase Admin SDK
+   FIREBASE_PROJECT_ID=your_project_id
+   FIREBASE_CLIENT_EMAIL=your_service_account_email
+   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYour private key here\n-----END PRIVATE KEY-----\n"
    ```
 
 ## 🚀 Development
@@ -125,6 +139,12 @@ GoldPlus is a modern web-based personal finance management application built wit
   ```
   Runs TypeScript type checking
 
+- **Firebase Setup**
+  ```bash
+  npm run setup:firebase
+  ```
+  Runs Firebase setup script
+
 ## 📁 Project Structure
 
 ## 🔧 Configuration Files
@@ -152,8 +172,18 @@ GoldPlus is a modern web-based personal finance management application built wit
 
 ### AI & Backend
 - Google Genkit for AI features
-- Supabase for database and authentication
-- Firebase for additional backend services
+- Firebase Authentication for user management
+- Firebase Firestore for data storage
+- Firebase Admin SDK for server-side operations
+
+## 🔐 Authentication
+
+The app uses Firebase Authentication with the following features:
+- Email/password authentication
+- Google OAuth sign-in
+- JWT token management
+- Automatic user profile creation in Firestore
+- Protected routes with middleware
 
 ## 🤝 Contributing
 

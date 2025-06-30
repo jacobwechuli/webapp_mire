@@ -10,10 +10,10 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 interface DashboardHeaderProps {
-  onAddTransaction?: () => void;
+  // Removed onAddTransaction prop
 }
 
-const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onAddTransaction }) => {
+const DashboardHeader: React.FC<DashboardHeaderProps> = () => {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
@@ -48,17 +48,12 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onAddTransaction }) =
     <header className={`sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ${hidden ? '-translate-y-full' : 'translate-y-0'}`}>
       <div className="container flex h-20 items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/overview" className="flex items-center gap-3">
+          <Link href="/overview" className="flex items-center gap-3 md:ml-0 ml-20">
             <Image src="/images/goldplus.jpg" alt="GoldPlus Logo" width={48} height={48} className="rounded-lg" />
-            <h1 className="text-2xl font-black text-foreground font-headline tracking-tight">GoldPlus</h1>
+            <h1 className="text-2xl font-black text-foreground font-gliker tracking-tight">Home</h1>
           </Link>
         </div>
         <div className="flex items-center gap-4">
-          {pathname === '/overview' && (
-            <Button onClick={onAddTransaction} size="lg" variant="default" className="px-6 py-3 h-12 text-base font-semibold shadow hover:scale-105 transition-transform bg-primary text-primary-foreground hover:bg-primary/90">
-              <PlusCircle className="mr-2 h-6 w-6" /> Add
-            </Button>
-          )}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

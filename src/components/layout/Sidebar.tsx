@@ -36,7 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName }) => {
     <>
       {/* Mobile Menu Button */}
       <button
-        className="fixed top-4 right-4 z-50 bg-card text-primary rounded-full p-3 shadow-lg focus:outline-none md:hidden border border-border"
+        className="fixed top-4 left-4 z-50 bg-card text-primary rounded-full p-3 shadow-lg focus:outline-none md:hidden border border-border"
         onClick={() => setMobileOpen(!mobileOpen)}
         aria-label="Toggle sidebar"
       >
