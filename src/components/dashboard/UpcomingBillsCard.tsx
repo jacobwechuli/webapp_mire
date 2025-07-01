@@ -151,7 +151,7 @@ const UpcomingBillsCard: React.FC<UpcomingBillsCardProps> = ({ bills, onUpdateBi
                 </div>
                 <div className="flex items-center space-x-2">
                   <div className="text-right">
-                    <p className="font-bold text-card-foreground">${bill.amount.toFixed(2)}</p>
+                    <p className="font-bold text-card-foreground">KES {bill.amount.toFixed(2)}</p>
                     <p className={`text-xs ${dueSoon ? 'text-destructive' : 'text-muted-foreground'}`}>
                       {days === 0 ? 'Due today' : 
                        days === 1 ? 'Due tomorrow' : 
