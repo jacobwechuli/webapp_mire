@@ -4,39 +4,63 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Calendar, PlusCircle, Trash2, DollarSign } from 'lucide-react';
 import { FirebaseBill } from '@/lib/firebaseDataStructure';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useFirebaseData } from '@/hooks/useFirebaseData';
 
 interface UpcomingBillsCardProps {
   bills: FirebaseBill[];
   onUpdateBills: (bills: FirebaseBill[]) => void;
 }
 
+const billFormSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  amount: z.coerce.number().positive('Amount must be positive'),
+  dueDate: z.string().min(1, 'Due date is required'),
+  description: z.string().optional(),
+  frequency: z.string().optional(),
+});
+
+type BillFormValues = z.infer<typeof billFormSchema>;
+
 const UpcomingBillsCard: React.FC<UpcomingBillsCardProps> = ({ bills, onUpdateBills }) => {
   const [showAdd, setShowAdd] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    amount: '',
-    dueDate: '',
-    description: '',
-    frequency: '',
+  const { addBill } = useFirebaseData();
+  const form = useForm<BillFormValues>({
+    resolver: zodResolver(billFormSchema),
+    defaultValues: {
+      name: '',
+      amount: 0,
+      dueDate: '',
+      description: '',
+      frequency: '',
+    },
   });
+  const [loading, setLoading] = useState(false);
 
   const sortedBills = [...bills].sort((a, b) => new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime());
   const now = new Date();
 
-  const handleAdd = () => {
-    if (!form.name || !form.amount || !form.dueDate) return;
-    const newBill: Omit<FirebaseBill, 'id' | 'createdAt' | 'updatedAt'> = {
-      name: form.name,
-      amount: parseFloat(form.amount),
-      dueDate: form.dueDate,
-      description: form.description || '',
-      frequency: form.frequency || '',
-      isPaid: false,
-    };
-    // Note: The actual bill creation will be handled by the parent component
-    // This is just for UI state management
-    setForm({ name: '', amount: '', dueDate: '', description: '', frequency: '' });
-    setShowAdd(false);
+  const handleAdd = async (data: BillFormValues) => {
+    setLoading(true);
+    try {
+      await addBill({
+        name: data.name,
+        amount: data.amount,
+        dueDate: data.dueDate,
+        description: data.description || '',
+        frequency: data.frequency || '',
+        isPaid: false,
+      });
+      setShowAdd(false);
+      form.reset();
+    } catch (e) {
+      // error handled in hook
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleRemove = (id: string) => {
@@ -55,53 +79,48 @@ const UpcomingBillsCard: React.FC<UpcomingBillsCardProps> = ({ bills, onUpdateBi
             Track your upcoming payments and due dates
           </CardDescription>
         </div>
-        <Button variant="default" onClick={() => setShowAdd(v => !v)} title="Add Subscription">
-          <PlusCircle className="h-4 w-4 mr-2" />
-          Add Bill
-        </Button>
+        <Dialog open={showAdd} onOpenChange={setShowAdd}>
+          <DialogTrigger asChild>
+            <Button variant="default" title="Add Subscription">
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Add Bill
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Bill</DialogTitle>
+              <DialogDescription>Fill in the details to add a new bill or subscription.</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={form.handleSubmit(handleAdd)} className="space-y-4">
+              <div>
+                <Input placeholder="Name (e.g., Netflix)" {...form.register('name')} className="bg-background text-foreground border-border" />
+                {form.formState.errors.name && <p className="text-sm text-destructive mt-1">{form.formState.errors.name.message}</p>}
+              </div>
+              <div>
+                <Input placeholder="Amount" type="number" step="0.01" {...form.register('amount')} className="bg-background text-foreground border-border" />
+                {form.formState.errors.amount && <p className="text-sm text-destructive mt-1">{form.formState.errors.amount.message}</p>}
+              </div>
+              <div>
+                <Input placeholder="Due Date" type="date" {...form.register('dueDate')} className="bg-background text-foreground border-border" />
+                {form.formState.errors.dueDate && <p className="text-sm text-destructive mt-1">{form.formState.errors.dueDate.message}</p>}
+              </div>
+              <div>
+                <Input placeholder="Description (optional)" {...form.register('description')} className="bg-background text-foreground border-border" />
+              </div>
+              <div>
+                <Input placeholder="Frequency (e.g., Monthly)" {...form.register('frequency')} className="bg-background text-foreground border-border" />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="outline" onClick={() => setShowAdd(false)} className="border-border text-foreground hover:bg-accent">Cancel</Button>
+                <Button type="submit" variant="gold" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
+                  {loading ? 'Adding...' : 'Add Bill'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent>
-        {showAdd && (
-          <div className="mb-4 flex flex-col gap-2 bg-accent p-4 rounded-lg border border-border">
-            <Input
-              placeholder="Name (e.g., Netflix)"
-              value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              className="bg-background text-foreground border-border"
-            />
-            <Input
-              placeholder="Amount"
-              type="number"
-              value={form.amount}
-              onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-              className="bg-background text-foreground border-border"
-            />
-            <Input
-              placeholder="Due Date"
-              type="date"
-              value={form.dueDate}
-              onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
-              className="bg-background text-foreground border-border"
-            />
-            <Input
-              placeholder="Description (optional)"
-              value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              className="bg-background text-foreground border-border"
-            />
-            <Input
-              placeholder="Frequency (e.g., Monthly)"
-              value={form.frequency}
-              onChange={e => setForm(f => ({ ...f, frequency: e.target.value }))}
-              className="bg-background text-foreground border-border"
-            />
-            <div className="flex gap-2 mt-2">
-              <Button variant="default" onClick={handleAdd}>Add</Button>
-              <Button variant="outline" onClick={() => setShowAdd(false)} className="border-border text-foreground hover:bg-accent">Cancel</Button>
-            </div>
-          </div>
-        )}
-        
         {sortedBills.length === 0 && !showAdd && (
           <div className="text-center py-8 text-muted-foreground">
             <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
