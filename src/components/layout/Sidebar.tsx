@@ -32,6 +32,23 @@ const Sidebar: React.FC<SidebarProps> = ({ userName }) => {
     }
   };
 
+  // Fixed mobile navigation handler
+  const handleMobileNavigation = (href: string) => {
+    // Close mobile menu first
+    setMobileOpen(false);
+    
+    // Use setTimeout to ensure menu closes before navigation
+    setTimeout(() => {
+      router.push(href);
+    }, 100);
+  };
+
+  // Fixed mobile action handler
+  const handleMobileAction = (action: () => void) => {
+    setMobileOpen(false);
+    setTimeout(action, 100);
+  };
+
   return (
     <>
       {/* Mobile Menu Button */}
@@ -86,55 +103,75 @@ const Sidebar: React.FC<SidebarProps> = ({ userName }) => {
 
         <nav className="flex-1 flex flex-col gap-2 px-8 md:px-4">
           {navItems.map((item) => (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium transition-all duration-300',
-                pathname === item.href ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-card-foreground text-muted-foreground',
-                desktopCollapsed ? 'md:justify-center md:px-2' : ''
-              )}
-              onClick={() => setMobileOpen(false)}
-              title={desktopCollapsed ? item.name : undefined}
-            >
-              <item.icon className="h-6 w-6 flex-shrink-0" />
-              <span className={cn(
-                'transition-opacity duration-300',
-                desktopCollapsed ? 'md:opacity-0 md:hidden' : 'md:opacity-100'
-              )}>
-                {item.name}
-              </span>
-            </Link>
+            <React.Fragment key={item.name}>
+              {/* Mobile: Use Link instead of button for better reliability */}
+              <Link
+                href={item.href}
+                className={cn(
+                  'flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium transition-all duration-300 md:hidden w-full',
+                  pathname === item.href ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-card-foreground text-muted-foreground'
+                )}
+                onClick={() => setMobileOpen(false)}
+                title={item.name}
+              >
+                <item.icon className="h-6 w-6 flex-shrink-0" />
+                <span className="transition-opacity duration-300">{item.name}</span>
+              </Link>
+              
+              {/* Desktop: Use Link as before */}
+              <Link
+                href={item.href}
+                className={cn(
+                  'hidden md:flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium transition-all duration-300',
+                  pathname === item.href ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-card-foreground text-muted-foreground',
+                  desktopCollapsed ? 'md:justify-center md:px-2' : ''
+                )}
+                title={desktopCollapsed ? item.name : undefined}
+              >
+                <item.icon className="h-6 w-6 flex-shrink-0" />
+                <span className={cn(
+                  'transition-opacity duration-300',
+                  desktopCollapsed ? 'md:opacity-0 md:hidden' : 'md:opacity-100'
+                )}>
+                  {item.name}
+                </span>
+              </Link>
+            </React.Fragment>
           ))}
         </nav>
 
         {/* Account actions for mobile only */}
         {user && (
           <div className="md:hidden px-8 pb-8 mt-auto flex flex-col gap-2 border-t border-border pt-4">
-            <button
+            <Link
+              href="/profile"
               className="flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium hover:bg-accent hover:text-card-foreground text-muted-foreground transition-all duration-300"
-              onClick={() => { setMobileOpen(false); router.push('/profile'); }}
+              onClick={() => setMobileOpen(false)}
             >
               <User className="h-6 w-6 flex-shrink-0" />
               <span>Profile</span>
-            </button>
-            <button
+            </Link>
+            
+            <Link
+              href="/theme"
               className="flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium hover:bg-accent hover:text-card-foreground text-muted-foreground transition-all duration-300"
-              onClick={() => { setMobileOpen(false); router.push('/theme'); }}
+              onClick={() => setMobileOpen(false)}
             >
               <Palette className="h-6 w-6 flex-shrink-0" />
               <span>Theme</span>
-            </button>
+            </Link>
+            
             <button
               className="flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium hover:bg-accent hover:text-primary transition-all duration-300 text-primary"
-              onClick={() => { setMobileOpen(false); router.push('#'); }}
+              onClick={() => handleMobileAction(() => router.push('#'))}
             >
               <ArrowUpCircle className="h-6 w-6 flex-shrink-0" />
               <span>Upgrade Plan</span>
             </button>
+            
             <button
               className="flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium hover:bg-accent hover:text-destructive transition-all duration-300 text-destructive"
-              onClick={() => { setMobileOpen(false); handleLogout(); }}
+              onClick={() => handleMobileAction(handleLogout)}
             >
               <LogOut className="h-6 w-6 flex-shrink-0" />
               <span>Logout</span>
@@ -146,7 +183,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName }) => {
       {/* Mobile Overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-black/30 z-50 md:hidden"
+          className="fixed inset-0 bg-black/30 z-40 md:hidden"
           onClick={() => setMobileOpen(false)}
           aria-label="Close sidebar overlay"
         />

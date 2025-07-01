@@ -18,6 +18,24 @@ interface SpendingChartProps {
   transactions: Transaction[]
 }
 
+const COLOR_PALETTE = [
+  '#4F8EF7', // Blue
+  '#F76C5E', // Red/Coral
+  '#43AA8B', // Green
+  '#FFD166', // Yellow
+  '#9D4EDD', // Purple
+  '#F9C74F', // Gold
+  '#577590', // Slate Blue
+  '#F3722C', // Orange
+  '#277DA1', // Deep Blue
+  '#90BE6D', // Light Green
+  '#F94144', // Bright Red
+  '#577590', // Blue Gray
+  '#43AA8B', // Teal
+  '#F9844A', // Orange
+  '#B5179E', // Magenta
+];
+
 const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
   const expenseData = transactions
     .filter((t) => t.type === "expense")
@@ -35,7 +53,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
   const chartConfig = expenseData.reduce((config, item, index) => {
     config[item.category] = {
       label: item.category,
-      color: `hsl(var(--chart-${(index % 5) + 1}))`, // Cycle through 5 chart colors
+      color: COLOR_PALETTE[index % COLOR_PALETTE.length],
     }
     return config
   }, {} as ChartConfig)
@@ -43,7 +61,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
   const chartData = expenseData.map(item => ({
     name: item.category,
     value: item.amount,
-    fill: chartConfig[item.category]?.color || `hsl(var(--chart-1))`, // Fallback color
+    fill: chartConfig[item.category]?.color || COLOR_PALETTE[0], // Fallback color
   }));
 
   if (expenseData.length === 0) {

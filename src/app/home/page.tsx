@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const testimonials = [
   {
@@ -79,7 +80,21 @@ export default function HomePage() {
           <p className="text-lg md:text-2xl text-card-foreground mb-8">GoldPlus helps you budget, save, and achieve your financial dreams—all in one beautiful app.</p>
           <div className="flex flex-col sm:flex-row gap-4 w-full">
             <Link href="/overview" className="inline-block px-8 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-lg shadow-lg hover:bg-primary/90 transition">Go to Dashboard</Link>
-            <a href="#playstore" className="inline-block px-8 py-4 rounded-xl border-2 border-primary text-primary font-bold text-lg shadow-lg hover:bg-primary hover:text-primary-foreground transition">Get it on PlayStore</a>
+            <Dialog>
+              <DialogTrigger asChild>
+                <button className="inline-block px-8 py-4 rounded-xl border-2 border-primary text-primary font-bold text-lg shadow-lg hover:bg-primary hover:text-primary-foreground transition">
+                  Get it on PlayStore
+                </button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Coming Soon!</DialogTitle>
+                  <DialogDescription>
+                    The GoldPlus app will be available on the Play Store soon. Stay tuned!
+                  </DialogDescription>
+                </DialogHeader>
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
         <div className="flex-1 flex items-center justify-center mt-12 md:mt-0">
@@ -118,7 +133,6 @@ export default function HomePage() {
 
       {/* PlayStore Anchor (for future use) */}
       <div id="playstore" className="w-full flex flex-col items-center py-12 bg-card">
-        <a href="#" className="inline-block px-10 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-xl shadow-lg hover:bg-primary/90 transition">Get it on PlayStore</a>
         <p className="text-muted-foreground mt-4">Coming soon to Android devices!</p>
       </div>
     </div>
