@@ -30,12 +30,11 @@ export default function Footer() {
         </div>
         {/* Social icons */}
         <div className="flex gap-6 mb-6">
-          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-yellow-400"><Facebook size={22} /></a>
-          <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="hover:text-yellow-400"><Twitter size={22} /></a>
-          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-yellow-400"><Instagram size={22} /></a>
-          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-yellow-400"><Linkedin size={22} /></a>
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-yellow-400"><Github size={22} /></a>
-          <a href="mailto:info@goldplus.com" aria-label="Email" className="hover:text-yellow-400"><Mail size={22} /></a>
+          <a href="https://www.facebook.com/GoldplusAdvisory/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:text-yellow-400"><Facebook size={22} /></a>
+          <a href="https://x.com/Goldplusadvisor?t=WHY-XenPNEMMOurrz8T8pA&s=09" target="_blank" rel="noopener noreferrer" aria-label="X (Twitter)" className="hover:text-yellow-400"><Twitter size={22} /></a>
+          <a href="https://www.instagram.com/goldplus_advisory?igsh=MWlldXE5YXE2bWJlYg==" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="hover:text-yellow-400"><Instagram size={22} /></a>
+          <a href="https://www.linkedin.com/company/goldplus-advisory/?viewAsMember=true" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" className="hover:text-yellow-400"><Linkedin size={22} /></a>
+          <a href="mailto:Info@goldplusadvisory.com" aria-label="Email" className="hover:text-yellow-400"><Mail size={22} /></a>
         </div>
         {/* Copyright */}
         <div className="text-xs text-white/60 mt-2">
