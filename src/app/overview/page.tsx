@@ -425,14 +425,14 @@ function DashboardContent() {
 
       {/* Onboarding Modal */}
       <Dialog open={showOnboarding}>
-        <DialogContent className="max-w-lg w-full bg-background text-foreground border border-border">
+        <DialogContent className="sm:max-w-[480px] p-6 bg-card text-card-foreground border border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Let's start with creating a budget for you</DialogTitle>
             <DialogDescription>
               To help you get the most out of GoldPlus, please tell us your name and set up your budget. You can skip this step if you prefer.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleOnboardingSubmit} className="space-y-4">
+          <form onSubmit={handleOnboardingSubmit} className="space-y-4 pb-4">
             <div>
               <label className="block text-sm font-medium mb-1">Full Name</label>
               <input
@@ -492,9 +492,9 @@ function DashboardContent() {
               ))}
               <button type="button" className="text-primary underline text-sm" onClick={addExpenseRow}>+ Add another</button>
             </div>
-            <div className="flex gap-2 justify-end pt-2">
-              <button type="button" className="btn btn-outline" onClick={handleOnboardingSkip}>Skip</button>
-              <button type="submit" className="btn btn-primary">Save</button>
+            <div className="flex gap-2 justify-center pt-2 w-full">
+              <button type="button" className="btn btn-outline w-full max-w-[120px]" onClick={handleOnboardingSkip}>Skip</button>
+              <button type="submit" className="btn btn-primary w-full max-w-[120px]">Save</button>
             </div>
           </form>
         </DialogContent>
