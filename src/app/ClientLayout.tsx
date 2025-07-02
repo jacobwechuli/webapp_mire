@@ -12,6 +12,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from '@/components/layout/Footer';
+import AiChatbot from '@/components/dashboard/AiChatbot';
 
 const publicRoutes = ['/login', '/signup', '/forgot-password', '/', '/home'];
 
@@ -67,7 +68,17 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     fetchProfileDisplayName();
   }, [user?.id]);
 
-  const displayName = profileDisplayName || user?.displayName || 'Guest';
+  const displayName = profileDisplayName !== null && profileDisplayName !== undefined
+    ? String(profileDisplayName)
+    : user && user.displayName !== null && user.displayName !== undefined
+      ? String(user.displayName)
+      : 'Guest';
+
+  // Handler to trigger Adjust Budget modal
+  const handleAdjustBudget = () => {
+    // Dispatch a custom event that the overview page listens for
+    window.dispatchEvent(new CustomEvent('open-adjust-budget'));
+  };
 
   if (isPublicRoute) {
     return <>{children}</>;
@@ -76,7 +87,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="bg-background min-h-screen flex flex-col">
       <div className="flex flex-1">
-        <Sidebar userName={displayName} />
+        <Sidebar userName={displayName} onAdjustBudget={handleAdjustBudget} />
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* <DashboardHeader /> */}
           <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 sm:p-6 lg:p-8">
@@ -90,6 +101,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 }
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   useEffect(() => {
     // Initialize theme on app startup
     initializeTheme();
@@ -107,6 +119,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       </Head>
       <AuthProvider>
         <DashboardShell>{children}</DashboardShell>
+        {/* Show chatbot everywhere except homescreen */}
+        {pathname !== '/' && pathname !== '/home' && <AiChatbot />}
         <Toaster />
       </AuthProvider>
     </ThemeProvider>

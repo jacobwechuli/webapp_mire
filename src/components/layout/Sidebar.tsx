@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle } from 'lucide-react';
+import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle, DollarSign } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,9 +14,10 @@ const navItems = [
 
 interface SidebarProps {
   userName: string;
+  onAdjustBudget?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ userName }) => {
+const Sidebar: React.FC<SidebarProps> = ({ userName, onAdjustBudget }) => {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
@@ -138,6 +139,35 @@ const Sidebar: React.FC<SidebarProps> = ({ userName }) => {
               </Link>
             </React.Fragment>
           ))}
+          {/* Adjust Budget Option - Mobile */}
+          <button
+            type="button"
+            className={cn(
+              'flex md:hidden items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium transition-all duration-300 w-full hover:bg-accent hover:text-card-foreground text-muted-foreground',
+            )}
+            onClick={() => handleMobileAction(() => onAdjustBudget && onAdjustBudget())}
+            title="Adjust Budget"
+          >
+            <span className="transition-opacity duration-300">Adjust Budget</span>
+          </button>
+          {/* Adjust Budget Option - Desktop */}
+          <button
+            type="button"
+            className={cn(
+              'hidden md:flex items-center gap-3 px-2 py-3 rounded-lg text-lg font-medium transition-all duration-300 hover:bg-accent hover:text-card-foreground text-muted-foreground',
+              desktopCollapsed ? 'md:justify-center md:px-2' : ''
+            )}
+            onClick={onAdjustBudget}
+            title="Adjust Budget"
+          >
+            <DollarSign className="h-6 w-6 flex-shrink-0" />
+            <span className={cn(
+              'transition-opacity duration-300',
+              desktopCollapsed ? 'md:opacity-0 md:hidden' : 'md:opacity-100'
+            )}>
+              Adjust Budget
+            </span>
+          </button>
         </nav>
 
         {/* Account actions for mobile only */}

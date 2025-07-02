@@ -28,6 +28,13 @@ export interface Profile {
   country?: string | null;
   createdAt: string;
   updatedAt: string;
+  // Onboarding fields
+  onboardingComplete?: boolean;
+  budget?: {
+    income?: number;
+    incomeFrequency?: 'monthly' | 'weekly' | 'random';
+    expenses?: { category: string; amount: number }[];
+  };
 }
 
 export const INCOME_CATEGORIES = ['Salary', 'Bonus', 'Freelance', 'Investment', 'Gift', 'Other Income'];

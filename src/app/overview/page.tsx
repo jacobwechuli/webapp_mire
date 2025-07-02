@@ -34,6 +34,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useFirebaseData } from '@/hooks/useFirebaseData';
 import { FirebaseTransaction, FirebaseBill } from '@/lib/firebaseDataStructure';
 import FloatingActionButton from '@/components/ui/floating-action-button';
+import { useProfile } from '@/hooks/useProfile';
 
 function DashboardContent() {
   const [isMounted, setIsMounted] = useState(false);
@@ -41,6 +42,15 @@ function DashboardContent() {
   const [editingTransaction, setEditingTransaction] = useState<FirebaseTransaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
+  // Onboarding modal state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardingData, setOnboardingData] = useState({
+    displayName: '',
+    income: '',
+    incomeFrequency: 'monthly',
+    expenses: [{ category: '', amount: '' }],
+  });
 
   const { toast } = useToast();
   const { user, logout } = useAuth();
@@ -60,6 +70,34 @@ function DashboardContent() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!profileLoading && profile && !profile.onboardingComplete) {
+      setShowOnboarding(true);
+      setOnboardingData({
+        displayName: profile.displayName || '',
+        income: profile.budget?.income?.toString() || '',
+        incomeFrequency: profile.budget?.incomeFrequency || 'monthly',
+        expenses: profile.budget?.expenses?.length
+          ? profile.budget.expenses.map(e => ({ category: e.category, amount: e.amount.toString() }))
+          : [{ category: '', amount: '' }],
+      });
+    }
+    // Listen for Adjust Budget event
+    const handler = () => {
+      setShowOnboarding(true);
+      setOnboardingData({
+        displayName: profile?.displayName || '',
+        income: profile?.budget?.income?.toString() || '',
+        incomeFrequency: profile?.budget?.incomeFrequency || 'monthly',
+        expenses: profile?.budget?.expenses?.length
+          ? profile.budget.expenses.map(e => ({ category: e.category, amount: e.amount.toString() }))
+          : [{ category: '', amount: '' }],
+      });
+    };
+    window.addEventListener('open-adjust-budget', handler);
+    return () => window.removeEventListener('open-adjust-budget', handler);
+  }, [profileLoading, profile]);
 
   const handleAddTransaction = async (transaction: Omit<Transaction, 'id'>) => {
     try {
@@ -158,7 +196,47 @@ function DashboardContent() {
     }
   };
 
-  if (!isMounted || loading) {
+  const handleOnboardingChange = (field: string, value: any) => {
+    setOnboardingData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleExpenseChange = (idx: number, field: string, value: string) => {
+    setOnboardingData(prev => ({
+      ...prev,
+      expenses: prev.expenses.map((exp, i) => i === idx ? { ...exp, [field]: value } : exp),
+    }));
+  };
+
+  const addExpenseRow = () => {
+    setOnboardingData(prev => ({ ...prev, expenses: [...prev.expenses, { category: '', amount: '' }] }));
+  };
+
+  const removeExpenseRow = (idx: number) => {
+    setOnboardingData(prev => ({ ...prev, expenses: prev.expenses.filter((_, i) => i !== idx) }));
+  };
+
+  const handleOnboardingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await updateProfile({
+      displayName: onboardingData.displayName,
+      onboardingComplete: true,
+      budget: {
+        income: Number(onboardingData.income) || undefined,
+        incomeFrequency: onboardingData.incomeFrequency as 'monthly' | 'weekly' | 'random',
+        expenses: onboardingData.expenses
+          .filter(e => e.category && e.amount)
+          .map(e => ({ category: e.category, amount: Number(e.amount) })),
+      },
+    });
+    setShowOnboarding(false);
+  };
+
+  const handleOnboardingSkip = async () => {
+    await updateProfile({ onboardingComplete: true });
+    setShowOnboarding(false);
+  };
+
+  if (!isMounted || loading || profileLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background text-card-foreground">
         <div className="flex flex-col items-center gap-4">
@@ -290,13 +368,26 @@ function DashboardContent() {
         </div>
       </main>
 
-      {/* Floating Action Button */}
-      <FloatingActionButton 
-        onClick={() => {
-          setIsFormOpen(true);
-          setEditingTransaction(null);
-        }}
-      />
+      {/* Floating Action Button with Tooltip */}
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <FloatingActionButton 
+                onClick={() => {
+                  setIsFormOpen(true);
+                  setEditingTransaction(null);
+                }}
+                className="left-6 right-auto"
+                size="lg"
+              />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" align="center">
+            Add Transaction
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!transactionToDelete} onOpenChange={() => setTransactionToDelete(null)}>
@@ -331,6 +422,83 @@ function DashboardContent() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Onboarding Modal */}
+      <Dialog open={showOnboarding}>
+        <DialogContent className="max-w-lg w-full bg-background text-foreground border border-border">
+          <DialogHeader>
+            <DialogTitle>Let's start with creating a budget for you</DialogTitle>
+            <DialogDescription>
+              To help you get the most out of GoldPlus, please tell us your name and set up your budget. You can skip this step if you prefer.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleOnboardingSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Full Name</label>
+              <input
+                type="text"
+                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+                value={onboardingData.displayName}
+                onChange={e => handleOnboardingChange('displayName', e.target.value)}
+                placeholder="Enter your full name"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Monthly/Weekly/Other Income</label>
+              <input
+                type="number"
+                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+                value={onboardingData.income}
+                onChange={e => handleOnboardingChange('income', e.target.value)}
+                placeholder="e.g. 50000"
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Income Frequency</label>
+              <select
+                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+                value={onboardingData.incomeFrequency}
+                onChange={e => handleOnboardingChange('incomeFrequency', e.target.value)}
+              >
+                <option value="monthly">Monthly</option>
+                <option value="weekly">Weekly</option>
+                <option value="random">Random</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Usual Expenditure</label>
+              {onboardingData.expenses.map((exp, idx) => (
+                <div key={idx} className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    className="input input-bordered flex-1 bg-card text-foreground border rounded px-3 py-2"
+                    value={exp.category}
+                    onChange={e => handleExpenseChange(idx, 'category', e.target.value)}
+                    placeholder="Category (e.g. Rent, Food)"
+                  />
+                  <input
+                    type="number"
+                    className="input input-bordered w-32 bg-card text-foreground border rounded px-3 py-2"
+                    value={exp.amount}
+                    onChange={e => handleExpenseChange(idx, 'amount', e.target.value)}
+                    placeholder="Amount"
+                    min="0"
+                  />
+                  {onboardingData.expenses.length > 1 && (
+                    <button type="button" className="text-red-500" onClick={() => removeExpenseRow(idx)}>&times;</button>
+                  )}
+                </div>
+              ))}
+              <button type="button" className="text-primary underline text-sm" onClick={addExpenseRow}>+ Add another</button>
+            </div>
+            <div className="flex gap-2 justify-end pt-2">
+              <button type="button" className="btn btn-outline" onClick={handleOnboardingSkip}>Skip</button>
+              <button type="submit" className="btn btn-primary">Save</button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -23,6 +23,8 @@ export function useProfile() {
         photoURL: user.photoURL || '',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        onboardingComplete: false,
+        budget: undefined,
       };
 
       await setDoc(userRef, profileData);
