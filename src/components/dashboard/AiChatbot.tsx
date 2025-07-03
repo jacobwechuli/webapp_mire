@@ -6,6 +6,10 @@ import { X, Maximize2, Minimize2, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 
+interface AiChatbotProps {
+  eventTrigger?: string;
+}
+
 const CHAT_HISTORY_KEY = 'ai_chatbot_history';
 
 const TONES = [
@@ -15,7 +19,7 @@ const TONES = [
   { value: 'detailed', label: 'Detailed' },
 ];
 
-const AiChatbot: React.FC = () => {
+const AiChatbot: React.FC<AiChatbotProps> = ({ eventTrigger }) => {
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [messages, setMessages] = useState<{ role: 'user' | 'ai'; content: string }[]>([]);
@@ -48,6 +52,14 @@ const AiChatbot: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(messages));
   }, [messages]);
+
+  // Listen for custom event to open dialog
+  useEffect(() => {
+    if (!eventTrigger) return;
+    const handler = () => setOpen(true);
+    window.addEventListener(eventTrigger, handler);
+    return () => window.removeEventListener(eventTrigger, handler);
+  }, [eventTrigger]);
 
   const handleSend = async () => {
     if (!input.trim() || loading) return;
@@ -82,23 +94,25 @@ const AiChatbot: React.FC = () => {
 
   return (
     <>
-      {/* Floating Action Button */}
-      <Button
-        className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg p-0 w-14 h-14 flex items-center justify-center"
-        onClick={() => setOpen(true)}
-        variant="default"
-        size="icon"
-        aria-label="Open AI Chatbot"
-      >
-        <MessageCircle size={28} />
-      </Button>
+      {/* Only render the floating button if not using eventTrigger */}
+      {!eventTrigger && (
+        <Button
+          className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg p-0 w-14 h-14 flex items-center justify-center"
+          onClick={() => setOpen(true)}
+          variant="default"
+          size="icon"
+          aria-label="Open AI Chatbot"
+        >
+          <MessageCircle size={28} />
+        </Button>
+      )}
       {/* Chat Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
           className={`p-0 overflow-hidden flex flex-col ${expanded ? 'w-full max-w-3xl h-[90vh]' : 'w-[95vw] max-w-md h-[70vh]'} transition-all`}
         >
           <DialogHeader className="flex flex-row items-center justify-between px-4 py-2 border-b">
-            <DialogTitle>Lina</DialogTitle>
+            <DialogTitle>Lina AI</DialogTitle>
             <div className="flex gap-2">
               {/* Tone Selector */}
               <select

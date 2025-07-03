@@ -10,7 +10,7 @@ import TransactionForm from '@/components/dashboard/TransactionForm';
 import TransactionList from '@/components/dashboard/TransactionList';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PlusCircle, Trash2, Coins, LogOut, User, Loader2 } from 'lucide-react';
+import { PlusCircle, Trash2, Coins, LogOut, User, Loader2, MessageCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -35,6 +35,7 @@ import { useFirebaseData } from '@/hooks/useFirebaseData';
 import { FirebaseTransaction, FirebaseBill } from '@/lib/firebaseDataStructure';
 import FloatingActionButton from '@/components/ui/floating-action-button';
 import { useProfile } from '@/hooks/useProfile';
+import AiChatbot from '@/components/dashboard/AiChatbot';
 
 function DashboardContent() {
   const [isMounted, setIsMounted] = useState(false);
@@ -399,8 +400,9 @@ function DashboardContent() {
         </div>
       </main>
 
-      {/* Floating Action Button with Tooltip */}
+      {/* Floating Action Buttons with Tooltips (stacked bottom right) */}
       <TooltipProvider>
+        {/* Add Transaction Button with Tooltip */}
         <Tooltip>
           <TooltipTrigger asChild>
             <span>
@@ -409,16 +411,40 @@ function DashboardContent() {
                   setIsFormOpen(true);
                   setEditingTransaction(null);
                 }}
-                className="left-6 right-auto"
                 size="lg"
+                className="right-6 bottom-24"
               />
             </span>
           </TooltipTrigger>
-          <TooltipContent side="top" align="center">
+          <TooltipContent side="left" align="center">
             Add Transaction
           </TooltipContent>
         </Tooltip>
+        {/* Chatbot Button with Tooltip */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <Button
+                className="fixed right-6 bottom-6 rounded-full shadow-lg p-0 w-14 h-14 flex items-center justify-center"
+                variant="default"
+                size="icon"
+                aria-label="Open AI Chatbot"
+                onClick={() => {
+                  const event = new CustomEvent('open-lina-chatbot');
+                  window.dispatchEvent(event);
+                }}
+              >
+                <MessageCircle size={28} />
+              </Button>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="left" align="center">
+            Chat with Lina AI
+          </TooltipContent>
+        </Tooltip>
       </TooltipProvider>
+      {/* Lina AI Chatbot Dialog (global, listens for open-lina-chatbot event) */}
+      <AiChatbot eventTrigger="open-lina-chatbot" />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!transactionToDelete} onOpenChange={() => setTransactionToDelete(null)}>
