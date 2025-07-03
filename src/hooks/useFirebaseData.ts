@@ -198,6 +198,7 @@ export const useFirebaseData = () => {
     // Data
     transactions,
     savingsGoals,
+    goals: savingsGoals,
     bills,
     loading,
     
@@ -210,6 +211,8 @@ export const useFirebaseData = () => {
     addSavingsGoal,
     updateSavingsGoal,
     deleteSavingsGoal,
+    addGoal: addSavingsGoal,
+    updateGoal: updateSavingsGoal,
     
     // Bills operations
     addBill,

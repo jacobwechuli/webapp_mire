@@ -31,7 +31,7 @@ export interface Profile {
   // Onboarding fields
   onboardingComplete?: boolean;
   budget?: {
-    income?: number;
+    incomes?: { source: string; amount: number }[];
     incomeFrequency?: 'monthly' | 'weekly' | 'random';
     expenses?: { category: string; amount: number }[];
   };

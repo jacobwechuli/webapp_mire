@@ -33,9 +33,9 @@ const features = [
     href: '/overview',
   },
   {
-    title: 'Savings Goals',
-    description: 'Set, track, and achieve your savings goals.',
-    href: '/savings',
+    title: 'Goals',
+    description: 'Set, track, and achieve your goals.',
+    href: '/goals',
   },
   {
     title: 'Personal Tutorials',

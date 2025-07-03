@@ -10,7 +10,7 @@ import TransactionForm from '@/components/dashboard/TransactionForm';
 import TransactionList from '@/components/dashboard/TransactionList';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PlusCircle, Coins, LogOut, User, Loader2 } from 'lucide-react';
+import { PlusCircle, Trash2, Coins, LogOut, User, Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -47,7 +47,7 @@ function DashboardContent() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [onboardingData, setOnboardingData] = useState({
     displayName: '',
-    income: '',
+    incomes: [{ source: '', amount: '' }],
     incomeFrequency: 'monthly',
     expenses: [{ category: '', amount: '' }],
   });
@@ -67,6 +67,26 @@ function DashboardContent() {
     updateBill,
   } = useFirebaseData();
 
+  // Refs for auto-focus
+  const incomeRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+  const expenseRefs = React.useRef<(HTMLInputElement | null)[]>([]);
+
+  // Focus new income row
+  React.useEffect(() => {
+    if (incomeRefs.current.length && onboardingData.incomes.length > 1) {
+      const lastIdx = onboardingData.incomes.length - 1;
+      incomeRefs.current[lastIdx]?.focus();
+    }
+  }, [onboardingData.incomes.length]);
+
+  // Focus new expense row
+  React.useEffect(() => {
+    if (expenseRefs.current.length && onboardingData.expenses.length > 1) {
+      const lastIdx = onboardingData.expenses.length - 1;
+      expenseRefs.current[lastIdx]?.focus();
+    }
+  }, [onboardingData.expenses.length]);
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -76,7 +96,9 @@ function DashboardContent() {
       setShowOnboarding(true);
       setOnboardingData({
         displayName: profile.displayName || '',
-        income: profile.budget?.income?.toString() || '',
+        incomes: profile.budget?.incomes?.length
+          ? profile.budget.incomes.map(i => ({ source: i.source, amount: i.amount.toString() }))
+          : [{ source: '', amount: '' }],
         incomeFrequency: profile.budget?.incomeFrequency || 'monthly',
         expenses: profile.budget?.expenses?.length
           ? profile.budget.expenses.map(e => ({ category: e.category, amount: e.amount.toString() }))
@@ -88,7 +110,9 @@ function DashboardContent() {
       setShowOnboarding(true);
       setOnboardingData({
         displayName: profile?.displayName || '',
-        income: profile?.budget?.income?.toString() || '',
+        incomes: profile?.budget?.incomes?.length
+          ? profile.budget.incomes.map(i => ({ source: i.source, amount: i.amount.toString() }))
+          : [{ source: '', amount: '' }],
         incomeFrequency: profile?.budget?.incomeFrequency || 'monthly',
         expenses: profile?.budget?.expenses?.length
           ? profile.budget.expenses.map(e => ({ category: e.category, amount: e.amount.toString() }))
@@ -200,19 +224,19 @@ function DashboardContent() {
     setOnboardingData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleExpenseChange = (idx: number, field: string, value: string) => {
+  const handleIncomeChange = (idx: number, field: string, value: string) => {
     setOnboardingData(prev => ({
       ...prev,
-      expenses: prev.expenses.map((exp, i) => i === idx ? { ...exp, [field]: value } : exp),
+      incomes: prev.incomes.map((inc, i) => i === idx ? { ...inc, [field]: value } : inc),
     }));
   };
 
-  const addExpenseRow = () => {
-    setOnboardingData(prev => ({ ...prev, expenses: [...prev.expenses, { category: '', amount: '' }] }));
+  const addIncomeRow = () => {
+    setOnboardingData(prev => ({ ...prev, incomes: [...prev.incomes, { source: '', amount: '' }] }));
   };
 
-  const removeExpenseRow = (idx: number) => {
-    setOnboardingData(prev => ({ ...prev, expenses: prev.expenses.filter((_, i) => i !== idx) }));
+  const removeIncomeRow = (idx: number) => {
+    setOnboardingData(prev => ({ ...prev, incomes: prev.incomes.filter((_, i) => i !== idx) }));
   };
 
   const handleOnboardingSubmit = async (e: React.FormEvent) => {
@@ -221,7 +245,9 @@ function DashboardContent() {
       displayName: onboardingData.displayName,
       onboardingComplete: true,
       budget: {
-        income: Number(onboardingData.income) || undefined,
+        incomes: onboardingData.incomes
+          .filter(i => i.source && i.amount)
+          .map(i => ({ source: i.source, amount: Number(i.amount) })),
         incomeFrequency: onboardingData.incomeFrequency as 'monthly' | 'weekly' | 'random',
         expenses: onboardingData.expenses
           .filter(e => e.category && e.amount)
@@ -235,6 +261,11 @@ function DashboardContent() {
     await updateProfile({ onboardingComplete: true });
     setShowOnboarding(false);
   };
+
+  // Totals
+  const totalIncome = onboardingData.incomes.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
+  const totalExpenses = onboardingData.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const overBudget = totalIncome > 0 && totalExpenses > totalIncome;
 
   if (!isMounted || loading || profileLoading) {
     return (
@@ -424,7 +455,7 @@ function DashboardContent() {
       </AlertDialog>
 
       {/* Onboarding Modal */}
-      <Dialog open={showOnboarding}>
+      <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
         <DialogContent className="sm:max-w-[480px] p-6 bg-card text-card-foreground border border-border max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Let's start with creating a budget for you</DialogTitle>
@@ -444,15 +475,52 @@ function DashboardContent() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">Monthly/Weekly/Other Income</label>
-              <input
-                type="number"
-                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
-                value={onboardingData.income}
-                onChange={e => handleOnboardingChange('income', e.target.value)}
-                placeholder="e.g. 50000"
-                min="0"
-              />
+              <label className="block text-sm font-medium mb-1">Income Sources</label>
+              <div className="flex flex-col gap-2">
+                {onboardingData.incomes.map((inc, idx) => {
+                  const isLast = idx === onboardingData.incomes.length - 1;
+                  const canAdd = inc.source && inc.amount;
+                  return (
+                    <div key={idx} className="flex gap-2 items-center bg-muted/30 rounded p-2">
+                      <input
+                        ref={el => { incomeRefs.current[idx] = el; }}
+                        type="text"
+                        className="input input-bordered flex-1 bg-card text-foreground border rounded px-3 py-2"
+                        value={inc.source}
+                        onChange={e => handleIncomeChange(idx, 'source', e.target.value)}
+                        placeholder="Source (e.g. Salary, Freelance)"
+                        autoComplete="off"
+                      />
+                      <input
+                        type="number"
+                        className="input input-bordered w-28 bg-card text-foreground border rounded px-3 py-2"
+                        value={inc.amount}
+                        onChange={e => handleIncomeChange(idx, 'amount', e.target.value)}
+                        placeholder="Amount"
+                        min="0"
+                        autoComplete="off"
+                      />
+                      {onboardingData.incomes.length > 1 && (
+                        <button type="button" className="text-destructive hover:bg-destructive/10 rounded p-1" onClick={() => removeIncomeRow(idx)} title="Remove income">
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      )}
+                      {isLast && (
+                        <button
+                          type="button"
+                          className={`text-primary hover:bg-primary/10 rounded p-1 ml-1 ${!canAdd ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          onClick={canAdd ? addIncomeRow : undefined}
+                          title={canAdd ? 'Add income' : 'Fill in this row to add another'}
+                          aria-label="Add income"
+                          disabled={!canAdd}
+                        >
+                          <PlusCircle className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Income Frequency</label>
@@ -468,33 +536,65 @@ function DashboardContent() {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Usual Expenditure</label>
-              {onboardingData.expenses.map((exp, idx) => (
-                <div key={idx} className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    className="input input-bordered flex-1 bg-card text-foreground border rounded px-3 py-2"
-                    value={exp.category}
-                    onChange={e => handleExpenseChange(idx, 'category', e.target.value)}
-                    placeholder="Category (e.g. Rent, Food)"
-                  />
-                  <input
-                    type="number"
-                    className="input input-bordered w-32 bg-card text-foreground border rounded px-3 py-2"
-                    value={exp.amount}
-                    onChange={e => handleExpenseChange(idx, 'amount', e.target.value)}
-                    placeholder="Amount"
-                    min="0"
-                  />
-                  {onboardingData.expenses.length > 1 && (
-                    <button type="button" className="text-red-500" onClick={() => removeExpenseRow(idx)}>&times;</button>
-                  )}
-                </div>
-              ))}
-              <button type="button" className="text-primary underline text-sm" onClick={addExpenseRow}>+ Add another</button>
+              <div className="flex flex-col gap-2">
+                {onboardingData.expenses.map((exp, idx) => {
+                  const isLast = idx === onboardingData.expenses.length - 1;
+                  const canAdd = exp.category && exp.amount;
+                  return (
+                    <div key={idx} className="flex gap-2 items-center bg-muted/30 rounded p-2">
+                      <input
+                        ref={el => { expenseRefs.current[idx] = el; }}
+                        type="text"
+                        className="input input-bordered flex-1 bg-card text-foreground border rounded px-3 py-2"
+                        value={exp.category}
+                        onChange={e => handleOnboardingChange('expenses', (prev: { category: string; amount: string }[]) => prev.map((ex, i: number) => i === idx ? { ...ex, category: e.target.value } : ex))}
+                        placeholder="Category (e.g. Rent, Food)"
+                        autoComplete="off"
+                      />
+                      <input
+                        type="number"
+                        className="input input-bordered w-28 bg-card text-foreground border rounded px-3 py-2"
+                        value={exp.amount}
+                        onChange={e => handleOnboardingChange('expenses', (prev: { category: string; amount: string }[]) => prev.map((ex, i: number) => i === idx ? { ...ex, amount: e.target.value } : ex))}
+                        placeholder="Amount"
+                        min="0"
+                        autoComplete="off"
+                      />
+                      {onboardingData.expenses.length > 1 && (
+                        <button type="button" className="text-destructive hover:bg-destructive/10 rounded p-1" onClick={() => handleOnboardingChange('expenses', (prev: { category: string; amount: string }[], _idx: number = idx) => prev.filter((_, i: number) => i !== _idx))} title="Remove expense">
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      )}
+                      {isLast && (
+                        <button
+                          type="button"
+                          className={`text-primary hover:bg-primary/10 rounded p-1 ml-1 ${!canAdd ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          onClick={canAdd ? () => handleOnboardingChange('expenses', (prev: { category: string; amount: string }[]) => [...prev, { category: '', amount: '' }]) : undefined}
+                          title={canAdd ? 'Add expense' : 'Fill in this row to add another'}
+                          aria-label="Add expense"
+                          disabled={!canAdd}
+                        >
+                          <PlusCircle className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div className="flex gap-2 justify-center pt-2 w-full">
-              <button type="button" className="btn btn-outline w-full max-w-[120px]" onClick={handleOnboardingSkip}>Skip</button>
-              <button type="submit" className="btn btn-primary w-full max-w-[120px]">Save</button>
+            {/* Sticky Totals/Footer */}
+            <div className="sticky bottom-0 left-0 right-0 bg-background border-t border-border mt-6 pt-4 pb-2 z-10 flex flex-col items-center gap-2">
+              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
+                <div className="font-bold text-lg text-primary">Total Income: KES {totalIncome.toLocaleString()}</div>
+                <div className="font-bold text-lg text-destructive">Total Expenditure: KES {totalExpenses.toLocaleString()}</div>
+              </div>
+              {overBudget && (
+                <div className="text-sm text-destructive font-semibold">Warning: Your expenses exceed your income!</div>
+              )}
+              <div className="flex gap-2 justify-center pt-2 w-full">
+                <button type="button" className="btn btn-outline w-full max-w-[120px]" onClick={handleOnboardingSkip}>Skip</button>
+                <button type="submit" className="btn btn-primary w-full max-w-[120px]">Save</button>
+              </div>
             </div>
           </form>
         </DialogContent>

@@ -47,7 +47,7 @@ const AddToGoalModal: React.FC<AddToGoalModalProps> = ({ open, onOpenChange, goa
         <DialogHeader>
           <DialogTitle className="text-card-foreground">Add to {goal.item}</DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Add money to your savings goal
+            Add money to your goal
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

@@ -24,7 +24,7 @@ export function useProfile() {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         onboardingComplete: false,
-        budget: undefined,
+        budget: { incomes: [{ source: '', amount: 0 }], incomeFrequency: 'monthly', expenses: [{ category: '', amount: 0 }] },
       };
 
       await setDoc(userRef, profileData);

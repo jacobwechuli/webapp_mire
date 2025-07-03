@@ -40,9 +40,9 @@ const AddGoalModal: React.FC<AddGoalModalProps> = ({ open, onOpenChange, onAddGo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md bg-card text-card-foreground border border-border">
         <DialogHeader>
-          <DialogTitle className="text-card-foreground">Add Savings Goal</DialogTitle>
+          <DialogTitle className="text-card-foreground">Add Goal</DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            Create a new savings goal to track your progress
+            Create a new goal to track your progress
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">

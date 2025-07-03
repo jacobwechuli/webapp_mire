@@ -3,7 +3,7 @@
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-function getMonthlySavings(goals: any[]) {
+function getMonthlyGoals(goals: any[]) {
   const monthly: Record<string, number> = {};
   goals.forEach(goal => {
     goal.history.forEach((entry: any) => {
@@ -17,8 +17,8 @@ function getMonthlySavings(goals: any[]) {
     .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime());
 }
 
-const SavingsBarChart = ({ goals }: { goals: any[] }) => {
-  const data = getMonthlySavings(goals);
+const GoalsBarChart = ({ goals }: { goals: any[] }) => {
+  const data = getMonthlyGoals(goals);
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={data} margin={{ top: 16, right: 16, left: 8, bottom: 8 }}>
@@ -32,4 +32,4 @@ const SavingsBarChart = ({ goals }: { goals: any[] }) => {
   );
 };
 
-export default SavingsBarChart; 
+export default GoalsBarChart; 

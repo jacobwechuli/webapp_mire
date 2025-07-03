@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
 const navItems = [
-  { name: 'Savings', href: '/savings', icon: PiggyBank },
+  { name: 'Goals', href: '/goals', icon: PiggyBank },
   { name: 'Tutorials', href: '/tutorials', icon: BookOpen },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
@@ -160,7 +160,7 @@ const Sidebar: React.FC<SidebarProps> = ({ userName, onAdjustBudget }) => {
             onClick={onAdjustBudget}
             title="Adjust Budget"
           >
-            <DollarSign className="h-6 w-6 flex-shrink-0" />
+            {/* <DollarSign className="h-6 w-6 flex-shrink-0" /> */}
             <span className={cn(
               'transition-opacity duration-300',
               desktopCollapsed ? 'md:opacity-0 md:hidden' : 'md:opacity-100'
