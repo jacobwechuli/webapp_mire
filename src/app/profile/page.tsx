@@ -4,38 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/hooks/useProfile';
 import { useRouter } from 'next/navigation';
-import type { Metadata } from 'next';
 import Script from 'next/script';
-
-export const metadata: Metadata = {
-  title: 'Profile | GoldPlus',
-  description: 'Manage your GoldPlus profile, update your information, and personalize your experience.',
-  openGraph: {
-    title: 'Profile | GoldPlus',
-    description: 'Manage your GoldPlus profile, update your information, and personalize your experience.',
-    url: 'http://goldplus-advisory.com/profile',
-    siteName: 'GoldPlus',
-    images: [
-      {
-        url: '/images/goldplus.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'GoldPlus Profile',
-      },
-    ],
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Profile | GoldPlus',
-    description: 'Manage your GoldPlus profile, update your information, and personalize your experience.',
-    images: ['/images/goldplus.jpg'],
-  },
-  alternates: {
-    canonical: 'http://goldplus-advisory.com/profile',
-  },
-};
 
 function calculateAge(dob: string | null) {
   if (!dob) return '';
