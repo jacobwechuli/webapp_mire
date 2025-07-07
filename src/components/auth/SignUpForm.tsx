@@ -73,7 +73,7 @@ export default function SignUpForm() {
     <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <Link href="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
+          <Link href="https://goldplus-advisory.com" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to home
           </Link>
