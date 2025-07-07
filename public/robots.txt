@@ -1,0 +1,4 @@
+User-agent: *
+Disallow: /api/
+Disallow: /users/
+Sitemap: http://goldplus-advisory.com/sitemap.xml 

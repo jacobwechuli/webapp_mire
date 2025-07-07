@@ -31,11 +31,15 @@ import UpcomingBillsCard from '@/components/dashboard/UpcomingBillsCard';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useFirebaseData } from '@/hooks/useFirebaseData';
+import { useSWRData } from '@/hooks/useSWRData';
 import { FirebaseTransaction, FirebaseBill } from '@/lib/firebaseDataStructure';
 import FloatingActionButton from '@/components/ui/floating-action-button';
 import { useProfile } from '@/hooks/useProfile';
 import AiChatbot from '@/components/dashboard/AiChatbot';
+import { DashboardSkeleton, TransactionSkeleton } from '@/components/ui/skeleton';
+import { CardTransition, ListTransition } from '@/components/layout/PageTransition';
+import type { Metadata } from 'next';
+import Script from 'next/script';
 
 function DashboardContent() {
   const [isMounted, setIsMounted] = useState(false);
@@ -57,7 +61,7 @@ function DashboardContent() {
   const { user, logout } = useAuth();
   const router = useRouter();
 
-  // Firebase data hook
+  // SWR data hook with optimistic updates
   const {
     transactions,
     bills,
@@ -66,7 +70,7 @@ function DashboardContent() {
     updateTransaction,
     deleteTransaction,
     updateBill,
-  } = useFirebaseData();
+  } = useSWRData();
 
   // Refs for auto-focus
   const incomeRefs = React.useRef<(HTMLInputElement | null)[]>([]);
@@ -179,7 +183,7 @@ function DashboardContent() {
         deletedCount = transactions.length;
         typeLabel = 'all transactions';
         // Delete all transactions
-        for (const transaction of transactions) {
+        for (const transaction of transactions as FirebaseTransaction[]) {
           await deleteTransaction(transaction.id);
         }
       } else {
@@ -187,7 +191,7 @@ function DashboardContent() {
         deletedCount = filteredTransactions.length;
         typeLabel = type === 'income' ? 'income transactions' : 'expense transactions';
         // Delete filtered transactions
-        for (const transaction of filteredTransactions) {
+        for (const transaction of filteredTransactions as FirebaseTransaction[]) {
           await deleteTransaction(transaction.id);
         }
       }
@@ -279,6 +283,11 @@ function DashboardContent() {
     );
   }
 
+  // Show skeleton while loading
+  if (loading) {
+    return <DashboardSkeleton />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-card-foreground">
       <DashboardHeader />
@@ -311,92 +320,109 @@ function DashboardContent() {
         <div className="space-y-8">
           <div className="grid gap-6 mb-8 w-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="animate-fade-in bg-card border border-border">
-                <CardContent>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <div>
-                        <SummaryCards 
-                          transactions={transactions}
-                          onReset={handleReset} 
-                          showOnly={[0]}
-                        />
-                      </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="bg-card text-card-foreground border border-border">More details about your balance and tips for improvement.</PopoverContent>
-                  </Popover>
-                </CardContent>
-              </Card>
-              <Card className="animate-fade-in delay-100 bg-card border border-border">
-                <CardContent>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <div>
-                        <SummaryCards 
-                          transactions={transactions}
-                          onReset={handleReset} 
-                          showOnly={[1]}
-                        />
-                      </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="bg-card text-card-foreground border border-border">View detailed income breakdown and trends.</PopoverContent>
-                  </Popover>
-                </CardContent>
-              </Card>
-              <Card className="animate-fade-in delay-200 bg-card border border-border">
-                <CardContent>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <div>
-                        <SummaryCards 
-                          transactions={transactions}
-                          onReset={handleReset} 
-                          showOnly={[2]}
-                        />
-                      </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="bg-card text-card-foreground border border-border">Analyze your spending patterns and identify areas for improvement.</PopoverContent>
-                  </Popover>
-                </CardContent>
-              </Card>
+              <CardTransition index={0}>
+                <Card className="bg-card border border-border">
+                  <CardContent>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <div>
+                          <SummaryCards 
+                            transactions={transactions}
+                            onReset={handleReset} 
+                            showOnly={[0]}
+                          />
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="bg-card text-card-foreground border border-border">More details about your balance and tips for improvement.</PopoverContent>
+                    </Popover>
+                  </CardContent>
+                </Card>
+              </CardTransition>
+              <CardTransition index={1}>
+                <Card className="bg-card border border-border">
+                  <CardContent>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <div>
+                          <SummaryCards 
+                            transactions={transactions}
+                            onReset={handleReset} 
+                            showOnly={[1]}
+                          />
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="bg-card text-card-foreground border border-border">View detailed income breakdown and trends.</PopoverContent>
+                    </Popover>
+                  </CardContent>
+                </Card>
+              </CardTransition>
+              <CardTransition index={2}>
+                <Card className="bg-card border border-border">
+                  <CardContent>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <div>
+                          <SummaryCards 
+                            transactions={transactions}
+                            onReset={handleReset} 
+                            showOnly={[2]}
+                          />
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="bg-card text-card-foreground border border-border">Analyze your spending patterns and identify areas for improvement.</PopoverContent>
+                    </Popover>
+                  </CardContent>
+                </Card>
+              </CardTransition>
             </div>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <Card className="animate-fade-in delay-300 bg-card border border-border">
-              <CardContent className="p-6">
-                <SpendingChart transactions={transactions} />
-              </CardContent>
-            </Card>
-            <Card className="animate-fade-in delay-400 bg-card border border-border">
-              <CardContent className="p-6">
-                <AiBudgetAdvisor transactions={transactions} />
-              </CardContent>
-            </Card>
+            <CardTransition index={3}>
+              <Card className="bg-card border border-border">
+                <CardContent className="p-6">
+                  <SpendingChart transactions={transactions} />
+                </CardContent>
+              </Card>
+            </CardTransition>
+            <CardTransition index={4}>
+              <Card className="bg-card border border-border">
+                <CardContent className="p-6">
+                  <AiBudgetAdvisor transactions={transactions} />
+                </CardContent>
+              </Card>
+            </CardTransition>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
-            <Card className="animate-fade-in delay-500 bg-card border border-border">
-              <CardContent className="p-6">
-                <FinancialTips transactions={transactions} />
-              </CardContent>
-            </Card>
-            <Card className="animate-fade-in delay-600 bg-card border border-border">
-              <CardContent className="p-6">
-                <UpcomingBillsCard bills={bills} onUpdateBills={handleUpdateBills} />
-              </CardContent>
-            </Card>
+            <CardTransition index={5}>
+              <Card className="bg-card border border-border">
+                <CardContent className="p-6">
+                  <FinancialTips transactions={transactions} />
+                </CardContent>
+              </Card>
+            </CardTransition>
+            <CardTransition index={6}>
+              <Card className="bg-card border border-border">
+                <CardContent className="p-6">
+                  <UpcomingBillsCard bills={bills} onUpdateBills={handleUpdateBills} />
+                </CardContent>
+              </Card>
+            </CardTransition>
           </div>
 
-          <Card className="animate-fade-in delay-700 bg-card border border-border">
-            <CardContent className="p-6">
-              <TransactionList 
-                transactions={transactions}
-                onEditTransaction={handleEditTransaction}
-                onDeleteTransaction={handleDeleteTransaction}
-              />
-            </CardContent>
-          </Card>
+          <CardTransition index={7}>
+            <Card className="bg-card border border-border">
+              <CardContent className="p-6">
+                <TransactionList 
+                  transactions={transactions}
+                  onEditTransaction={handleEditTransaction}
+                  onDeleteTransaction={handleDeleteTransaction}
+                  loading={loading}
+                />
+              </CardContent>
+            </Card>
+          </CardTransition>
         </div>
       </main>
 
@@ -631,8 +657,19 @@ function DashboardContent() {
 
 export default function OverviewPage() {
   return (
-    <ProtectedRoute>
-      <DashboardContent />
-    </ProtectedRoute>
+    <>
+      <Script id="overview-jsonld" type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Overview | GoldPlus",
+          "url": "http://goldplus-advisory.com/overview",
+          "description": "See your financial overview, track spending, and get AI-powered insights with GoldPlus.",
+        })}
+      </Script>
+      <ProtectedRoute>
+        <DashboardContent />
+      </ProtectedRoute>
+    </>
   );
 }

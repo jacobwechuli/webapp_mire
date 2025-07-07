@@ -31,6 +31,10 @@ export class FirebaseService {
     this.userId = userId;
   }
 
+  protected getUserId(): string {
+    return this.userId;
+  }
+
   private getPaths() {
     return getFirebasePaths(this.userId);
   }

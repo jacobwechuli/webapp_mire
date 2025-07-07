@@ -13,6 +13,8 @@ import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/AuthContext';
 import Footer from '@/components/layout/Footer';
 import AiChatbot from '@/components/dashboard/AiChatbot';
+import { PageTransition } from '@/components/layout/PageTransition';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 
 const publicRoutes = ['/login', '/signup', '/forgot-password', '/', '/home'];
 
@@ -42,7 +44,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const pathname = usePathname();
   const isPublicRoute = publicRoutes.includes(pathname);
-  const [profileDisplayName, setProfileDisplayName] = useState<string | null>(null);
+  const [profileDisplayName, setProfileDisplayName] = useState<string>('');
 
   useEffect(() => {
     // Initialize theme on component mount
@@ -54,14 +56,16 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
           const userRef = doc(db, 'users', user.id);
           const userDoc = await getDoc(userRef);
           
-          if (userDoc.exists() && userDoc.data().displayName) {
-            setProfileDisplayName(userDoc.data().displayName);
+          const data = userDoc.data();
+          const displayName = data?.displayName;
+          if (userDoc.exists() && displayName && typeof displayName === 'string') {
+            setProfileDisplayName(displayName as string);
           } else {
-            setProfileDisplayName(null);
+            setProfileDisplayName('');
           }
         } catch (error) {
           console.error('Error fetching profile:', error);
-          setProfileDisplayName(null);
+          setProfileDisplayName('');
         }
       }
     }
@@ -72,7 +76,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     ? String(profileDisplayName)
     : user && user.displayName !== null && user.displayName !== undefined
       ? String(user.displayName)
-      : 'Guest';
+      : '';
 
   // Handler to trigger Adjust Budget modal
   const handleAdjustBudget = () => {
@@ -85,18 +89,22 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="bg-background min-h-screen flex flex-col">
-      <div className="flex flex-1">
-        <Sidebar userName={displayName} onAdjustBudget={handleAdjustBudget} />
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* <DashboardHeader /> */}
-          <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 sm:p-6 lg:p-8">
-            {children}
-          </main>
+    <ProtectedRoute>
+      <div className="bg-background min-h-screen flex flex-col">
+        <div className="flex flex-1">
+          <Sidebar userName={displayName} onAdjustBudget={handleAdjustBudget} />
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* <DashboardHeader /> */}
+            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 sm:p-6 lg:p-8">
+              <PageTransition>
+                {children}
+              </PageTransition>
+            </main>
+          </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
-    </div>
+    </ProtectedRoute>
   );
 }
 

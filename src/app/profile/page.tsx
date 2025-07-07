@@ -4,6 +4,38 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useProfile } from '@/hooks/useProfile';
 import { useRouter } from 'next/navigation';
+import type { Metadata } from 'next';
+import Script from 'next/script';
+
+export const metadata: Metadata = {
+  title: 'Profile | GoldPlus',
+  description: 'Manage your GoldPlus profile, update your information, and personalize your experience.',
+  openGraph: {
+    title: 'Profile | GoldPlus',
+    description: 'Manage your GoldPlus profile, update your information, and personalize your experience.',
+    url: 'http://goldplus-advisory.com/profile',
+    siteName: 'GoldPlus',
+    images: [
+      {
+        url: '/images/goldplus.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'GoldPlus Profile',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Profile | GoldPlus',
+    description: 'Manage your GoldPlus profile, update your information, and personalize your experience.',
+    images: ['/images/goldplus.jpg'],
+  },
+  alternates: {
+    canonical: 'http://goldplus-advisory.com/profile',
+  },
+};
 
 function calculateAge(dob: string | null) {
   if (!dob) return '';
@@ -63,102 +95,113 @@ export default function ProfilePage() {
   if (error) return <div className="flex justify-center items-center min-h-screen text-red-500">{error}</div>;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-background py-12">
-      <div className="w-full max-w-xl mb-6">
-        <Button 
-          variant="outline" 
-          onClick={() => router.push('/overview')}
-        >
-          ← Back to Overview
-        </Button>
+    <>
+      <Script id="profile-jsonld" type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "ProfilePage",
+          "name": "Profile | GoldPlus",
+          "url": "http://goldplus-advisory.com/profile",
+          "description": "Manage your GoldPlus profile, update your information, and personalize your experience.",
+        })}
+      </Script>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background py-12">
+        <div className="w-full max-w-xl mb-6">
+          <Button 
+            variant="outline" 
+            onClick={() => router.push('/overview')}
+          >
+            ← Back to Overview
+          </Button>
+        </div>
+        <Card className="w-full max-w-xl shadow-lg p-8">
+          <CardHeader>
+            <CardTitle className="text-3xl font-bold mb-4">Profile</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold">Full Name:</span>
+              {editing ? (
+                <input
+                  type="text"
+                  name="displayName"
+                  value={form.displayName}
+                  onChange={handleChange}
+                  className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+                />
+              ) : (
+                <span>{profile?.displayName}</span>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold">Email:</span>
+              <span>{profile?.email}</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold">Age:</span>
+              <span>{age}</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold">Date of Birth:</span>
+              {editing ? (
+                <input
+                  type="date"
+                  name="dateOfBirth"
+                  value={form.dateOfBirth}
+                  onChange={handleChange}
+                  className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+                />
+              ) : (
+                <span>{profile?.dateOfBirth}</span>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold">Phone Number:</span>
+              {editing ? (
+                <input
+                  type="text"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                  className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+                />
+              ) : (
+                <span>{profile?.phone}</span>
+              )}
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold">Country:</span>
+              {editing ? (
+                <input
+                  type="text"
+                  name="country"
+                  value={form.country}
+                  onChange={handleChange}
+                  className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
+                />
+              ) : (
+                <span>{profile?.country}</span>
+              )}
+            </div>
+            <div className="pt-6 flex gap-2">
+              {editing ? (
+                <>
+                  <Button variant="gold" size="lg" className="w-full" onClick={handleSave}>Save</Button>
+                  <Button variant="outline" size="lg" className="w-full" onClick={() => { setEditing(false); setForm({
+                    displayName: profile?.displayName || '',
+                    email: profile?.email || '',
+                    dateOfBirth: profile?.dateOfBirth || '',
+                    phone: profile?.phone || '',
+                    country: profile?.country || '',
+                  }); }}>Cancel</Button>
+                </>
+              ) : (
+                <Button variant="gold" size="lg" className="w-full" onClick={() => setEditing(true)}>Edit Profile</Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
-      <Card className="w-full max-w-xl shadow-lg p-8">
-        <CardHeader>
-          <CardTitle className="text-3xl font-bold mb-4">Profile</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col gap-2">
-            <span className="font-semibold">Full Name:</span>
-            {editing ? (
-              <input
-                type="text"
-                name="displayName"
-                value={form.displayName}
-                onChange={handleChange}
-                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
-              />
-            ) : (
-              <span>{profile?.displayName}</span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="font-semibold">Email:</span>
-            <span>{profile?.email}</span>
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="font-semibold">Age:</span>
-            <span>{age}</span>
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="font-semibold">Date of Birth:</span>
-            {editing ? (
-              <input
-                type="date"
-                name="dateOfBirth"
-                value={form.dateOfBirth}
-                onChange={handleChange}
-                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
-              />
-            ) : (
-              <span>{profile?.dateOfBirth}</span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="font-semibold">Phone Number:</span>
-            {editing ? (
-              <input
-                type="text"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
-              />
-            ) : (
-              <span>{profile?.phone}</span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="font-semibold">Country:</span>
-            {editing ? (
-              <input
-                type="text"
-                name="country"
-                value={form.country}
-                onChange={handleChange}
-                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
-              />
-            ) : (
-              <span>{profile?.country}</span>
-            )}
-          </div>
-          <div className="pt-6 flex gap-2">
-            {editing ? (
-              <>
-                <Button variant="gold" size="lg" className="w-full" onClick={handleSave}>Save</Button>
-                <Button variant="outline" size="lg" className="w-full" onClick={() => { setEditing(false); setForm({
-                  displayName: profile?.displayName || '',
-                  email: profile?.email || '',
-                  dateOfBirth: profile?.dateOfBirth || '',
-                  phone: profile?.phone || '',
-                  country: profile?.country || '',
-                }); }}>Cancel</Button>
-              </>
-            ) : (
-              <Button variant="gold" size="lg" className="w-full" onClick={() => setEditing(true)}>Edit Profile</Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    </>
   );
 } 

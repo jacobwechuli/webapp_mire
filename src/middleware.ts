@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { rateLimitMiddleware, getRateLimiter } from '@/lib/rateLimit';
 
 // Routes that require authentication
 const protectedRoutes = [
@@ -19,6 +20,16 @@ const authRoutes = [
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  
+  // Apply rate limiting to API routes
+  if (pathname.startsWith('/api/')) {
+    const limiter = getRateLimiter(pathname);
+    const rateLimitResponse = await rateLimitMiddleware(req, limiter);
+    
+    if (rateLimitResponse) {
+      return rateLimitResponse;
+    }
+  }
   
   // For now, let Firebase handle authentication on the client side
   // The middleware will only handle basic routing without authentication checks

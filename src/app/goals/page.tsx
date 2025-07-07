@@ -10,7 +10,39 @@ import { useRouter } from 'next/navigation';
 import { useFirebaseData } from '@/hooks/useFirebaseData';
 import { FirebaseSavingsGoal } from '@/lib/firebaseDataStructure';
 import { useProfile } from '@/hooks/useProfile';
+import type { Metadata } from 'next';
+import Script from 'next/script';
 // import { MigrationBanner } from '@/components/ui/MigrationBanner';
+
+export const metadata: Metadata = {
+  title: 'Goals | GoldPlus',
+  description: 'Set, track, and achieve your savings goals with GoldPlus.',
+  openGraph: {
+    title: 'Goals | GoldPlus',
+    description: 'Set, track, and achieve your savings goals with GoldPlus.',
+    url: 'http://goldplus-advisory.com/goals',
+    siteName: 'GoldPlus',
+    images: [
+      {
+        url: '/images/goldplus.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'GoldPlus Goals',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Goals | GoldPlus',
+    description: 'Set, track, and achieve your savings goals with GoldPlus.',
+    images: ['/images/goldplus.jpg'],
+  },
+  alternates: {
+    canonical: 'http://goldplus-advisory.com/goals',
+  },
+};
 
 export default function GoalsPage() {
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -75,48 +107,59 @@ export default function GoalsPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-card-foreground">
-      <DashboardHeader />
-      <main className="container py-8 flex-1">
-        <div className="mb-6">
-          <Button 
-            variant="outline" 
-            onClick={() => router.push('/overview')}
-          >
-            ← Back to Overview
-          </Button>
-        </div>
+    <>
+      <Script id="goals-jsonld" type="application/ld+json">
+        {JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Goals | GoldPlus",
+          "url": "http://goldplus-advisory.com/goals",
+          "description": "Set, track, and achieve your savings goals with GoldPlus.",
+        })}
+      </Script>
+      <div className="flex flex-col min-h-screen bg-background text-card-foreground">
+        <DashboardHeader />
+        <main className="container py-8 flex-1">
+          <div className="mb-6">
+            <Button 
+              variant="outline" 
+              onClick={() => router.push('/overview')}
+            >
+              ← Back to Overview
+            </Button>
+          </div>
 
-        {/* Tip Box */}
-        <div className="mb-8 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 shadow-sm">
-          <span className="font-semibold">Goal Tip:</span> {randomTip}
-        </div>
+          {/* Tip Box */}
+          <div className="mb-8 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-900 shadow-sm">
+            <span className="font-semibold">Goal Tip:</span> {randomTip}
+          </div>
 
-        {/* Migration Banner */}
-        {/* <MigrationBanner /> */}
+          {/* Migration Banner */}
+          {/* <MigrationBanner /> */}
 
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <h1 className="text-3xl font-bold font-headline text-card-foreground">Goals</h1>
-          <Button onClick={() => setAddModalOpen(true)} variant="default" className="flex items-center gap-2 w-full md:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
-            <PlusCircle className="h-5 w-5" /> Add Goal
-          </Button>
-        </div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <h1 className="text-3xl font-bold font-headline text-card-foreground">Goals</h1>
+            <Button onClick={() => setAddModalOpen(true)} variant="default" className="flex items-center gap-2 w-full md:w-auto bg-primary text-primary-foreground hover:bg-primary/90">
+              <PlusCircle className="h-5 w-5" /> Add Goal
+            </Button>
+          </div>
 
-        {/* Savings Goals Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-12">
-          {goals.length === 0 ? (
-            <div className="col-span-full text-center text-muted-foreground py-12">
-              No goals yet. Click "+ Add Goal" to get started!
-            </div>
-          ) : (
-            goals.map((goal: FirebaseSavingsGoal) => (
-              <SavingsGoalCard key={goal.id} goal={goal} onUpdate={handleUpdateGoal} totalIncome={totalIncome} incomeFrequency={incomeFrequency} />
-            ))
-          )}
-        </div>
+          {/* Savings Goals Cards */}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-12">
+            {goals.length === 0 ? (
+              <div className="col-span-full text-center text-muted-foreground py-12">
+                No goals yet. Click "+ Add Goal" to get started!
+              </div>
+            ) : (
+              goals.map((goal: FirebaseSavingsGoal) => (
+                <SavingsGoalCard key={goal.id} goal={goal} onUpdate={handleUpdateGoal} totalIncome={totalIncome} incomeFrequency={incomeFrequency} />
+              ))
+            )}
+          </div>
 
-        <AddGoalModal open={addModalOpen} onOpenChange={setAddModalOpen} onAddGoal={handleAddGoal} />
-      </main>
-    </div>
+          <AddGoalModal open={addModalOpen} onOpenChange={setAddModalOpen} onAddGoal={handleAddGoal} />
+        </main>
+      </div>
+    </>
   );
 } 
