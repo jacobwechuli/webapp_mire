@@ -15,6 +15,7 @@ import Footer from '@/components/layout/Footer';
 import AiChatbot from '@/components/dashboard/AiChatbot';
 import { PageTransition } from '@/components/layout/PageTransition';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
+import { useRouter } from 'next/navigation';
 
 const publicRoutes = ['/login', '/signup', '/forgot-password', '/', '/home'];
 
@@ -41,10 +42,12 @@ const initializeTheme = () => {
 };
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
-  const pathname = usePathname();
+  const { user, logout } = useAuth();
+  const pathnameRaw = usePathname();
+  const pathname = pathnameRaw || '';
   const isPublicRoute = publicRoutes.includes(pathname);
   const [profileDisplayName, setProfileDisplayName] = useState<string>('');
+  const router = useRouter();
 
   useEffect(() => {
     // Initialize theme on component mount
@@ -77,11 +80,14 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     : user && user.displayName !== null && user.displayName !== undefined
       ? String(user.displayName)
       : '';
+  const email = user && user.email ? String(user.email) : '';
 
-  // Handler to trigger Adjust Budget modal
-  const handleAdjustBudget = () => {
-    // Dispatch a custom event that the overview page listens for
-    window.dispatchEvent(new CustomEvent('open-adjust-budget'));
+  // Handler to trigger logout
+  const handleLogout = async () => {
+    if (logout) {
+      await logout();
+    }
+    router.push('/login');
   };
 
   if (isPublicRoute) {
@@ -92,7 +98,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     <ProtectedRoute>
       <div className="bg-background min-h-screen flex flex-col">
         <div className="flex flex-1">
-          <Sidebar userName={displayName} onAdjustBudget={handleAdjustBudget} />
+          <Sidebar userName={displayName} userEmail={email} onLogout={handleLogout} />
           <div className="flex-1 flex flex-col overflow-hidden">
             {/* <DashboardHeader /> */}
             <main className="flex-1 overflow-x-hidden overflow-y-auto bg-background p-4 sm:p-6 lg:p-8">
@@ -109,7 +115,8 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 }
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const pathnameRaw = usePathname();
+  const pathname = pathnameRaw || '';
   useEffect(() => {
     // Initialize theme on app startup
     initializeTheme();
@@ -127,8 +134,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       </Head>
       <AuthProvider>
         <DashboardShell>{children}</DashboardShell>
-        {/* Show chatbot everywhere except homescreen */}
-        {pathname !== '/' && pathname !== '/home' && <AiChatbot />}
+        {/* Show chatbot only on overview, tutorials, and goals pages */}
+        {['/overview', '/tutorials', '/goals'].includes(pathname) && <AiChatbot eventTrigger="open-lina-chatbot" />}
         <Toaster />
       </AuthProvider>
     </ThemeProvider>

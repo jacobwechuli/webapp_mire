@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
 import { Button } from '../ui/button';
 import { Textarea } from '../ui/textarea';
-import { X, Maximize2, Minimize2, MessageCircle } from 'lucide-react';
+import { X, Maximize2, Minimize2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -35,7 +35,7 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ eventTrigger }) => {
 
   // Personalized greeting
   const personalizedGreeting = profile && profile.displayName
-    ? `Hi ${profile.displayName}, how can I help you${profile.budget?.income ? ` with your budget or financial goals?` : ` today?`}`
+    ? `Hi ${profile.displayName}, how can I help you${profile.budget?.incomes && profile.budget.incomes.length > 0 ? ` with your budget or financial goals?` : ` today?`}`
     : 'Hi there! How can I help you today?';
 
   // Load chat history from localStorage on mount
@@ -94,18 +94,6 @@ const AiChatbot: React.FC<AiChatbotProps> = ({ eventTrigger }) => {
 
   return (
     <>
-      {/* Only render the floating button if not using eventTrigger */}
-      {!eventTrigger && (
-        <Button
-          className="fixed bottom-6 right-6 z-50 rounded-full shadow-lg p-0 w-14 h-14 flex items-center justify-center"
-          onClick={() => setOpen(true)}
-          variant="default"
-          size="icon"
-          aria-label="Open AI Chatbot"
-        >
-          <MessageCircle size={28} />
-        </Button>
-      )}
       {/* Chat Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent

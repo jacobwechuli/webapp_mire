@@ -9,12 +9,14 @@ interface FloatingActionButtonProps {
   onClick: () => void;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  icon?: React.ReactNode;
 }
 
 const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({ 
   onClick, 
   className,
-  size = 'lg'
+  size = 'lg',
+  icon
 }) => {
   const sizeClasses = {
     sm: 'w-12 h-12',
@@ -41,7 +43,7 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       )}
       aria-label="Add transaction"
     >
-      <Plus size={iconSizes[size]} />
+      {icon ? icon : <Plus size={iconSizes[size]} />}
     </Button>
   );
 };
