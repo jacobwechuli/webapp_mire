@@ -64,7 +64,7 @@ export default function GoalsPage() {
     return (
       <div className="flex flex-col min-h-screen bg-background text-card-foreground">
         <DashboardHeader />
-        <main className="container py-8 flex-1">
+        <main className="container py-8 flex-1 pl-20 md:pl-20 lg:pl-20">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="flex flex-col items-center gap-4">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -89,7 +89,7 @@ export default function GoalsPage() {
       </Script>
       <div className="flex flex-col min-h-screen bg-background text-card-foreground">
         <DashboardHeader />
-        <main className="container py-8 flex-1">
+        <main className="container py-8 flex-1 pl-20 md:pl-20 lg:pl-20">
           <div className="mb-6">
             <Button 
               variant="outline" 

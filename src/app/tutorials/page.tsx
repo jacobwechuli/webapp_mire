@@ -91,7 +91,7 @@ export default function TutorialsPage() {
             filter: 'brightness(1.2) blur(1px)',
           }}
         />
-        <div className="relative z-10 container mx-auto px-4 py-8">
+        <div className="relative z-10 container mx-auto px-4 py-8 pl-20 md:pl-20 lg:pl-20">
           <div className="mb-6">
             <Button 
               variant="outline" 

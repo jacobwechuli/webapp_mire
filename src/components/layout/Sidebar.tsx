@@ -88,7 +88,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                 onMouseLeave={handleMouseLeave}
             >
                 <header className="sidebar__header">
-                    <a href="#" className="sidebar__logo">
+                    <a href="/overview" className="sidebar__logo">
                         <div className="sidebar__logo-icon">
                             <Coins className="w-6 h-6" />
                         </div>
