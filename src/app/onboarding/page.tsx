@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { createFirebaseService } from '@/lib/firebaseService';
+import WelcomePopup from '@/components/onboarding/WelcomePopup';
 
 const steps = [
   {
@@ -89,6 +90,7 @@ const initialAnswers = {
 };
 
 export default function OnboardingPage() {
+  const [showWelcome, setShowWelcome] = useState(true);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<typeof initialAnswers>(initialAnswers);
   const [loading, setLoading] = useState(false);
@@ -96,6 +98,11 @@ export default function OnboardingPage() {
   const [completed, setCompleted] = useState(false);
   const { user } = useAuth();
   const router = useRouter();
+
+  // Handle get started from welcome popup
+  const handleGetStarted = () => {
+    setShowWelcome(false);
+  };
 
   // Helper to get the answer value for the current step
   const getCurrentValue = () => {
@@ -196,6 +203,11 @@ export default function OnboardingPage() {
 
   // Progress bar percent
   const progress = Math.round(((step + (completed ? 1 : 0)) / (steps.length + 1)) * 100);
+
+  // Show welcome popup first
+  if (showWelcome) {
+    return <WelcomePopup isOpen={showWelcome} onGetStarted={handleGetStarted} />;
+  }
 
   if (completed) {
     return (
