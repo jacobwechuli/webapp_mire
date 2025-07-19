@@ -166,20 +166,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      // Use popup for better UX, fallback to redirect if popup is blocked
-      try {
-        await signInWithPopup(auth, googleProvider);
-      } catch (error: any) {
-        if (error.code === 'auth/popup-blocked') {
-          // Fallback to redirect
-          await signInWithRedirect(auth, googleProvider);
-        } else {
-          throw error;
+      // Detect if we're on a mobile device
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      
+      if (isMobile) {
+        // Use redirect for mobile devices (more reliable)
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        // Use popup for desktop devices
+        try {
+          await signInWithPopup(auth, googleProvider);
+        } catch (error: any) {
+          if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+            // Fallback to redirect if popup is blocked
+            await signInWithRedirect(auth, googleProvider);
+          } else {
+            throw error;
+          }
         }
       }
     } catch (error: any) {
       console.error('Google sign in error:', error);
-      throw new Error(error.message || 'Failed to sign in with Google');
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to sign in with Google';
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Sign-in was cancelled. Please try again.';
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = 'Pop-up was blocked. Please allow pop-ups and try again.';
+      } else if (error.code === 'auth/network-request-failed') {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
     }
   };
 

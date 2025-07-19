@@ -49,11 +49,22 @@ export default function LoginPage() {
     setError('');
     setGoogleLoading(true);
     try {
+      // Detect if we're on mobile
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      
+      if (isMobile) {
+        // For mobile, show a message that they'll be redirected
+        setError('Redirecting to Google... Please complete the sign-in process.');
+      }
+      
       await signInWithGoogle();
-      // After redirect, the user will be signed in. Upsert profile in a useEffect in overview or here if possible.
-      // For now, just redirect.
-      router.push('/overview');
+      
+      // Only redirect to overview if we're not on mobile (mobile will handle redirect automatically)
+      if (!isMobile) {
+        router.push('/overview');
+      }
     } catch (error: any) {
+      console.error('Google signin error:', error);
       setError(error.message || 'Google sign-in failed');
     } finally {
       setGoogleLoading(false);

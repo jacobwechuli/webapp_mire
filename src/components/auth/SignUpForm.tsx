@@ -53,9 +53,22 @@ export default function SignUpForm() {
     setError('');
     setGoogleLoading(true);
     try {
+      // Detect if we're on mobile
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      
+      if (isMobile) {
+        // For mobile, show a message that they'll be redirected
+        setError('Redirecting to Google... Please complete the sign-in process.');
+      }
+      
       await signInWithGoogle();
-      router.push('/onboarding');
+      
+      // Only redirect to onboarding if we're not on mobile (mobile will handle redirect automatically)
+      if (!isMobile) {
+        router.push('/onboarding');
+      }
     } catch (error: any) {
+      console.error('Google signup error:', error);
       setError(error.message || 'Google sign-up failed');
     } finally {
       setGoogleLoading(false);
