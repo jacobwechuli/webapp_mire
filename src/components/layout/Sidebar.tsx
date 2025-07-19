@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle, Coins, Home, Target, Wallet } from 'lucide-react';
+import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle, Coins, Home, Target, Wallet, BarChart3 } from 'lucide-react';
 
 const menuItems = [
     { name: 'Dashboard', icon: Home, href: '/overview' },
+    { name: 'Stats', icon: BarChart3, href: '/stats' },
     { name: 'Goals', icon: Target, href: '/goals' },
     { name: 'Learning', icon: BookOpen, href: '/learning' },
     { name: 'Settings', icon: Settings, href: '/settings' },
-    { name: 'Budget', icon: Wallet, href: '#' },
+    { name: 'Budget', icon: Wallet, href: '/budgeting' },
 ];
 
 interface SidebarProps {
@@ -110,32 +111,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                     <ul className="sidebar__menu">
                         {menuItems.map((item) => {
                             const IconComponent = item.icon;
-                            // Special handler for Budget
-                            if (item.name === 'Budget') {
-                                return (
-                                    <li key={item.name} className="sidebar__menu-item">
-                                        <a 
-                                            href="#"
-                                            className={`sidebar__menu-link ${activeItem === item.name ? 'active' : ''}`}
-                                            onClick={e => {
-                                                e.preventDefault();
-                                                setActiveItem(item.name);
-                                                window.dispatchEvent(new CustomEvent('open-adjust-budget'));
-                                            }}
-                                        >
-                                            <div className="sidebar__menu-icon">
-                                                <IconComponent className="w-5 h-5" />
-                                            </div>
-                                            <span className="sidebar__menu-text">{item.name}</span>
-                                            {!shouldShowExpanded && (
-                                                <div className="sidebar__tooltip">
-                                                    {item.name}
-                                                </div>
-                                            )}
-                                        </a>
-                                    </li>
-                                );
-                            }
                             return (
                                 <li key={item.name} className="sidebar__menu-item">
                                     <a 
@@ -150,8 +125,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                                         {!shouldShowExpanded && (
                                             <div className="sidebar__tooltip">
                                                 {item.name}
-          </div>
-        )}
+                                            </div>
+                                        )}
                                     </a>
                                 </li>
                             );

@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Transaction } from '@/lib/types';
 import { Calendar, DollarSign, Tag } from 'lucide-react';
+import { format, isSameMonth, parseISO, subMonths, addMonths } from 'date-fns';
 
 interface TransactionHistoryModalProps {
   isOpen: boolean;
@@ -13,6 +14,9 @@ interface TransactionHistoryModalProps {
   transactions: Transaction[];
   type: 'income' | 'expense' | 'all';
   title: string;
+  monthSelector?: boolean;
+  selectedMonth?: Date;
+  setSelectedMonth?: (date: Date) => void;
 }
 
 const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
@@ -20,7 +24,10 @@ const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
   onClose,
   transactions,
   type,
-  title
+  title,
+  monthSelector,
+  selectedMonth,
+  setSelectedMonth
 }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(amount);
@@ -34,9 +41,13 @@ const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
     });
   };
 
-  const filteredTransactions = type === 'all' 
+  // Filter by selected month if monthSelector is enabled
+  let filteredTransactions = type === 'all' 
     ? transactions 
     : transactions.filter(t => t.type === type);
+  if (monthSelector && selectedMonth) {
+    filteredTransactions = filteredTransactions.filter(t => isSameMonth(parseISO(t.date), selectedMonth));
+  }
 
   const totalAmount = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
 
@@ -49,6 +60,27 @@ const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
           </DialogTitle>
         </DialogHeader>
         <div className="flex-1 overflow-hidden flex flex-col">
+          {/* Month Selector */}
+          {monthSelector && selectedMonth && setSelectedMonth && (
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <button
+                className="px-2 py-1 rounded bg-accent text-accent-foreground border border-border"
+                onClick={() => setSelectedMonth(subMonths(selectedMonth, 1))}
+                title="Previous Month"
+              >
+                &lt;
+              </button>
+              <span className="font-semibold text-card-foreground">{format(selectedMonth, 'MMMM yyyy')}</span>
+              <button
+                className="px-2 py-1 rounded bg-accent text-accent-foreground border border-border"
+                onClick={() => setSelectedMonth(addMonths(selectedMonth, 1))}
+                title="Next Month"
+                disabled={format(selectedMonth, 'yyyy-MM') === format(new Date(), 'yyyy-MM')}
+              >
+                &gt;
+              </button>
+            </div>
+          )}
           <div className="mb-4 p-4 bg-accent rounded-lg border border-border">
             <div className="flex items-center justify-between">
               <div>

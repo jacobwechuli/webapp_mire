@@ -66,7 +66,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
 
   if (expenseData.length === 0) {
     return (
-      <Card className="bg-card text-card-foreground shadow-lg flex flex-col h-full border border-border">
+      <Card className="bg-card text-card-foreground shadow-lg flex flex-col h-full" borderless>
         <CardHeader>
           <CardTitle className="text-xl font-semibold text-card-foreground flex items-center">
             <Coins className="mr-2 h-6 w-6 text-primary" /> Spending Breakdown
@@ -81,7 +81,7 @@ const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) => {
   }
 
   return (
-    <Card className="bg-background text-foreground border border-border shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full">
+    <Card className="bg-background text-foreground shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col h-full" borderless>
       <CardHeader>
         <CardTitle className="text-xl font-semibold text-card-foreground flex items-center">
           <Coins className="mr-2 h-6 w-6 text-primary" /> Spending Breakdown

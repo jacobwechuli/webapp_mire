@@ -185,6 +185,9 @@ body, .bg-background {
 .text-gold {
   color: var(--color-gold) !important;
 }
+.text-gold-dark {
+  color: #926F34 !important; /* Darker gold */
+}
 .text-green {
   color: var(--color-green) !important;
 }

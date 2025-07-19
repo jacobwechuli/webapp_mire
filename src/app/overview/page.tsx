@@ -48,14 +48,7 @@ function DashboardContent() {
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { profile, loading: profileLoading, updateProfile } = useProfile();
-  // Onboarding modal state
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingData, setOnboardingData] = useState({
-    displayName: '',
-    incomes: [{ source: '', amount: '' }],
-    incomeFrequency: 'monthly',
-    expenses: [{ category: '', amount: '' }],
-  });
+  // Remove onboarding modal state and logic
 
   const { toast } = useToast();
   const { user, logout } = useAuth();
@@ -78,51 +71,52 @@ function DashboardContent() {
 
   // Focus new income row
   React.useEffect(() => {
-    if (incomeRefs.current.length && onboardingData.incomes.length > 1) {
-      const lastIdx = onboardingData.incomes.length - 1;
+    if (incomeRefs.current.length && profile?.budget?.incomes?.length > 1) {
+      const lastIdx = profile.budget.incomes.length - 1;
       incomeRefs.current[lastIdx]?.focus();
     }
-  }, [onboardingData.incomes.length]);
+  }, [profile?.budget?.incomes?.length]);
 
   // Focus new expense row
   React.useEffect(() => {
-    if (expenseRefs.current.length && onboardingData.expenses.length > 1) {
-      const lastIdx = onboardingData.expenses.length - 1;
+    if (expenseRefs.current.length && profile?.budget?.expenses?.length > 1) {
+      const lastIdx = profile.budget.expenses.length - 1;
       expenseRefs.current[lastIdx]?.focus();
     }
-  }, [onboardingData.expenses.length]);
+  }, [profile?.budget?.expenses?.length]);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  // Remove onboarding modal effect
   useEffect(() => {
     if (!profileLoading && profile && !profile.onboardingComplete) {
-      setShowOnboarding(true);
-      setOnboardingData({
-        displayName: profile.displayName || '',
-        incomes: profile.budget?.incomes?.length
-          ? profile.budget.incomes.map(i => ({ source: i.source, amount: i.amount.toString() }))
-          : [{ source: '', amount: '' }],
-        incomeFrequency: profile.budget?.incomeFrequency || 'monthly',
-        expenses: profile.budget?.expenses?.length
-          ? profile.budget.expenses.map(e => ({ category: e.category, amount: e.amount.toString() }))
-          : [{ category: '', amount: '' }],
-      });
+      // setShowOnboarding(true); // This line is removed
+      // setOnboardingData({ // This line is removed
+      //   displayName: profile.displayName || '', // This line is removed
+      //   incomes: profile.budget?.incomes?.length // This line is removed
+      //     ? profile.budget.incomes.map(i => ({ source: i.source, amount: i.amount.toString() })) // This line is removed
+      //     : [{ source: '', amount: '' }], // This line is removed
+      //   incomeFrequency: profile.budget?.incomeFrequency || 'monthly', // This line is removed
+      //   expenses: profile.budget?.expenses?.length // This line is removed
+      //     ? profile.budget.expenses.map(e => ({ category: e.category, amount: e.amount.toString() })) // This line is removed
+      //     : [{ category: '', amount: '' }], // This line is removed
+      // }); // This line is removed
     }
     // Listen for Adjust Budget event
     const handler = () => {
-      setShowOnboarding(true);
-      setOnboardingData({
-        displayName: profile?.displayName || '',
-        incomes: profile?.budget?.incomes?.length
-          ? profile.budget.incomes.map(i => ({ source: i.source, amount: i.amount.toString() }))
-          : [{ source: '', amount: '' }],
-        incomeFrequency: profile?.budget?.incomeFrequency || 'monthly',
-        expenses: profile?.budget?.expenses?.length
-          ? profile.budget.expenses.map(e => ({ category: e.category, amount: e.amount.toString() }))
-          : [{ category: '', amount: '' }],
-      });
+      // setShowOnboarding(true); // This line is removed
+      // setOnboardingData({ // This line is removed
+      //   displayName: profile?.displayName || '', // This line is removed
+      //   incomes: profile?.budget?.incomes?.length // This line is removed
+      //     ? profile.budget.incomes.map(i => ({ source: i.source, amount: i.amount.toString() })) // This line is removed
+      //     : [{ source: '', amount: '' }], // This line is removed
+      //   incomeFrequency: profile?.budget?.incomeFrequency || 'monthly', // This line is removed
+      //   expenses: profile?.budget?.expenses?.length // This line is removed
+      //     ? profile.budget.expenses.map(e => ({ category: e.category, amount: e.amount.toString() })) // This line is removed
+      //     : [{ category: '', amount: '' }], // This line is removed
+      // }); // This line is removed
     };
     window.addEventListener('open-adjust-budget', handler);
     return () => window.removeEventListener('open-adjust-budget', handler);
@@ -225,51 +219,12 @@ function DashboardContent() {
     }
   };
 
-  const handleOnboardingChange = (field: string, value: any) => {
-    setOnboardingData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleIncomeChange = (idx: number, field: string, value: string) => {
-    setOnboardingData(prev => ({
-      ...prev,
-      incomes: prev.incomes.map((inc, i) => i === idx ? { ...inc, [field]: value } : inc),
-    }));
-  };
-
-  const addIncomeRow = () => {
-    setOnboardingData(prev => ({ ...prev, incomes: [...prev.incomes, { source: '', amount: '' }] }));
-  };
-
-  const removeIncomeRow = (idx: number) => {
-    setOnboardingData(prev => ({ ...prev, incomes: prev.incomes.filter((_, i) => i !== idx) }));
-  };
-
-  const handleOnboardingSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await updateProfile({
-      displayName: onboardingData.displayName,
-      onboardingComplete: true,
-      budget: {
-        incomes: onboardingData.incomes
-          .filter(i => i.source && i.amount)
-          .map(i => ({ source: i.source, amount: Number(i.amount) })),
-        incomeFrequency: onboardingData.incomeFrequency as 'monthly' | 'weekly' | 'random',
-        expenses: onboardingData.expenses
-          .filter(e => e.category && e.amount)
-          .map(e => ({ category: e.category, amount: Number(e.amount) })),
-      },
-    });
-    setShowOnboarding(false);
-  };
-
-  const handleOnboardingSkip = async () => {
-    await updateProfile({ onboardingComplete: true });
-    setShowOnboarding(false);
-  };
+  // Remove onboarding modal handlers and calculations
+  // Remove onboarding modal JSX
 
   // Totals
-  const totalIncome = onboardingData.incomes.reduce((sum, i) => sum + (Number(i.amount) || 0), 0);
-  const totalExpenses = onboardingData.expenses.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  const totalIncome = profile?.budget?.incomes?.reduce((sum, i) => sum + (Number(i.amount) || 0), 0) || 0;
+  const totalExpenses = profile?.budget?.expenses?.reduce((sum, e) => sum + (Number(e.amount) || 0), 0) || 0;
   const overBudget = totalIncome > 0 && totalExpenses > totalIncome;
 
   if (!isMounted || loading || profileLoading) {
@@ -318,6 +273,10 @@ function DashboardContent() {
 
       <main className="flex-1 w-full max-w-none py-8 px-4 md:px-8 bg-background text-card-foreground">
         <div className="space-y-8">
+          {/* Add Transaction Hint */}
+          <div className="mb-2 text-center text-base font-medium text-muted-foreground">
+            Click the "+" to add a transaction
+          </div>
           <div className="grid gap-6 mb-8 w-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <CardTransition index={0}>
@@ -505,150 +464,7 @@ function DashboardContent() {
       </AlertDialog>
 
       {/* Onboarding Modal */}
-      <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
-        <DialogContent className="sm:max-w-[480px] p-6 bg-card text-card-foreground border border-border max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Let's start with creating a budget for you</DialogTitle>
-            <DialogDescription>
-              To help you get the most out of GoldPlus, please tell us your name and set up your budget. You can skip this step if you prefer.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={handleOnboardingSubmit} className="space-y-4 pb-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Full Name</label>
-              <input
-                type="text"
-                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
-                value={onboardingData.displayName}
-                onChange={e => handleOnboardingChange('displayName', e.target.value)}
-                placeholder="Enter your full name"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Income Sources</label>
-              <div className="flex flex-col gap-2">
-                {onboardingData.incomes.map((inc, idx) => {
-                  const isLast = idx === onboardingData.incomes.length - 1;
-                  const canAdd = inc.source && inc.amount;
-                  return (
-                    <div key={idx} className="flex gap-2 items-center bg-muted/30 rounded p-2">
-                      <input
-                        ref={el => { incomeRefs.current[idx] = el; }}
-                        type="text"
-                        className="input input-bordered flex-1 bg-card text-foreground border rounded px-3 py-2"
-                        value={inc.source}
-                        onChange={e => handleIncomeChange(idx, 'source', e.target.value)}
-                        placeholder="Source (e.g. Salary, Freelance)"
-                        autoComplete="off"
-                      />
-                      <input
-                        type="number"
-                        className="input input-bordered w-28 bg-card text-foreground border rounded px-3 py-2"
-                        value={inc.amount}
-                        onChange={e => handleIncomeChange(idx, 'amount', e.target.value)}
-                        placeholder="Amount"
-                        min="0"
-                        autoComplete="off"
-                      />
-                      {onboardingData.incomes.length > 1 && (
-                        <button type="button" className="text-destructive hover:bg-destructive/10 rounded p-1" onClick={() => removeIncomeRow(idx)} title="Remove income">
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      )}
-                      {isLast && (
-                        <button
-                          type="button"
-                          className={`text-primary hover:bg-primary/10 rounded p-1 ml-1 ${!canAdd ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          onClick={canAdd ? addIncomeRow : undefined}
-                          title={canAdd ? 'Add income' : 'Fill in this row to add another'}
-                          aria-label="Add income"
-                          disabled={!canAdd}
-                        >
-                          <PlusCircle className="h-5 w-5" />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Income Frequency</label>
-              <select
-                className="input input-bordered w-full bg-card text-foreground border rounded px-3 py-2"
-                value={onboardingData.incomeFrequency}
-                onChange={e => handleOnboardingChange('incomeFrequency', e.target.value)}
-              >
-                <option value="monthly">Monthly</option>
-                <option value="weekly">Weekly</option>
-                <option value="random">Random</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">Usual Expenditure</label>
-              <div className="flex flex-col gap-2">
-                {onboardingData.expenses.map((exp, idx) => {
-                  const isLast = idx === onboardingData.expenses.length - 1;
-                  const canAdd = exp.category && exp.amount;
-                  return (
-                    <div key={idx} className="flex gap-2 items-center bg-muted/30 rounded p-2">
-                      <input
-                        ref={el => { expenseRefs.current[idx] = el; }}
-                        type="text"
-                        className="input input-bordered flex-1 bg-card text-foreground border rounded px-3 py-2"
-                        value={exp.category}
-                        onChange={e => handleOnboardingChange('expenses', (prev: { category: string; amount: string }[]) => prev.map((ex, i: number) => i === idx ? { ...ex, category: e.target.value } : ex))}
-                        placeholder="Category (e.g. Rent, Food)"
-                        autoComplete="off"
-                      />
-                      <input
-                        type="number"
-                        className="input input-bordered w-28 bg-card text-foreground border rounded px-3 py-2"
-                        value={exp.amount}
-                        onChange={e => handleOnboardingChange('expenses', (prev: { category: string; amount: string }[]) => prev.map((ex, i: number) => i === idx ? { ...ex, amount: e.target.value } : ex))}
-                        placeholder="Amount"
-                        min="0"
-                        autoComplete="off"
-                      />
-                      {onboardingData.expenses.length > 1 && (
-                        <button type="button" className="text-destructive hover:bg-destructive/10 rounded p-1" onClick={() => handleOnboardingChange('expenses', (prev: { category: string; amount: string }[], _idx: number = idx) => prev.filter((_, i: number) => i !== _idx))} title="Remove expense">
-                          <Trash2 className="h-5 w-5" />
-                        </button>
-                      )}
-                      {isLast && (
-                        <button
-                          type="button"
-                          className={`text-primary hover:bg-primary/10 rounded p-1 ml-1 ${!canAdd ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          onClick={canAdd ? () => handleOnboardingChange('expenses', (prev: { category: string; amount: string }[]) => [...prev, { category: '', amount: '' }]) : undefined}
-                          title={canAdd ? 'Add expense' : 'Fill in this row to add another'}
-                          aria-label="Add expense"
-                          disabled={!canAdd}
-                        >
-                          <PlusCircle className="h-5 w-5" />
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            {/* Sticky Totals/Footer */}
-            <div className="sticky bottom-0 left-0 right-0 bg-background border-t border-border mt-6 pt-4 pb-2 z-10 flex flex-col items-center gap-2">
-              <div className="flex flex-col sm:flex-row gap-4 w-full justify-center items-center">
-                <div className="font-bold text-lg text-primary">Total Income: KES {totalIncome.toLocaleString()}</div>
-                <div className="font-bold text-lg text-destructive">Total Expenditure: KES {totalExpenses.toLocaleString()}</div>
-              </div>
-              {overBudget && (
-                <div className="text-sm text-destructive font-semibold">Warning: Your expenses exceed your income!</div>
-              )}
-              <div className="flex gap-2 justify-center pt-2 w-full">
-                <button type="button" className="btn btn-outline w-full max-w-[120px]" onClick={handleOnboardingSkip}>Skip</button>
-                <button type="submit" className="btn btn-primary w-full max-w-[120px]">Save</button>
-              </div>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* This block is removed as per the edit hint */}
     </div>
   );
 }

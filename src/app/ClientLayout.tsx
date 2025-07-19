@@ -45,7 +45,7 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const pathnameRaw = usePathname();
   const pathname = pathnameRaw || '';
-  const isPublicRoute = publicRoutes.includes(pathname);
+  const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/onboarding');
   const [profileDisplayName, setProfileDisplayName] = useState<string>('');
   const router = useRouter();
 

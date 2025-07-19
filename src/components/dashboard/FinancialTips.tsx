@@ -53,7 +53,7 @@ const FinancialTips: React.FC<FinancialTipsProps> = ({ transactions }) => {
   const dynamicTip = getDynamicTip();
 
   return (
-    <Card className="bg-background text-foreground border border-border shadow-lg">
+    <Card className="bg-background text-foreground shadow-lg" borderless>
       <CardHeader>
         <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
           <Lightbulb className="h-5 w-5 text-primary" />

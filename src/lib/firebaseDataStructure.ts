@@ -9,6 +9,25 @@ export interface FirebaseUserProfile {
   country?: string;
   createdAt: string;
   updatedAt: string;
+  // Onboarding fields
+  goal?: string;
+  income?: string;
+  setupType?: 'simple' | 'advanced';
+  mainReason?: string;
+  shortTermGoal?: string;
+  longTermGoal?: string;
+  budgetChallenge?: string[];
+  incomeSource?: string;
+  incomeFrequency?: string;
+  // Budget templates
+  budgetTemplates?: {
+    id?: string;
+    name: string;
+    incomes: { source: string; amount: number }[];
+    expenses: { category: string; amount: number }[];
+    frequency: 'monthly' | 'weekly' | 'random';
+    notes?: string;
+  }[];
 }
 
 export interface FirebaseTransaction {
@@ -40,9 +59,16 @@ export interface FirebaseBill {
   id: string;
   name: string;
   amount: number;
-  dueDate: string;
+  frequency: 'one-time' | 'monthly' | 'weekly';
+  // For one-time bills: specific date
+  dueDate?: string; // ISO date string for one-time bills
+  // For monthly bills: day of month (1-31)
+  monthlyDay?: number;
+  // For weekly bills: day of week (0-6, Sunday = 0)
+  weeklyDay?: number;
+  // For weekly bills: time (optional)
+  weeklyTime?: string; // HH:MM format
   description: string;
-  frequency: string;
   isPaid: boolean;
   createdAt: string;
   updatedAt: string;

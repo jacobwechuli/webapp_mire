@@ -2,14 +2,19 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+  borderless?: boolean;
+}
+
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  CardProps
+>(({ className, borderless = false, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "rounded-lg bg-card text-card-foreground shadow-lg h-full border border-border",
+      "rounded-lg bg-card text-card-foreground shadow-lg h-full",
+      !borderless && "border border-border",
       className
     )}
     {...props}

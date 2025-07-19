@@ -27,7 +27,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, onEditT
   const sortedTransactions = [...transactions].sort((a, b) => parseISO(b.date).getTime() - parseISO(a.date).getTime());
 
   return (
-    <Card className="bg-background text-foreground shadow-lg border border-border">
+    <Card className="bg-background text-foreground shadow-lg" borderless>
       <CardHeader>
         <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
           Transactions

@@ -25,23 +25,32 @@ export const useFirebaseData = () => {
 
   // Set up real-time listeners
   useEffect(() => {
-    if (!firebaseService) return;
+    if (!firebaseService) {
+      console.log('No Firebase service available, skipping listeners');
+      return;
+    }
+
+    console.log('Setting up Firebase listeners...');
 
     const unsubscribeTransactions = firebaseService.subscribeToTransactions((data) => {
+      console.log('Transactions updated:', data.length);
       setTransactions(data);
     });
 
     const unsubscribeSavingsGoals = firebaseService.subscribeToSavingsGoals((data) => {
+      console.log('Savings goals updated:', data.length);
       setSavingsGoals(data);
     });
 
     const unsubscribeBills = firebaseService.subscribeToBills((data) => {
+      console.log('Received bills from Firebase:', data);
       setBills(data);
     });
 
     setLoading(false);
 
     return () => {
+      console.log('Cleaning up Firebase listeners...');
       unsubscribeTransactions();
       unsubscribeSavingsGoals();
       unsubscribeBills();
@@ -153,8 +162,11 @@ export const useFirebaseData = () => {
     if (!firebaseService) return;
 
     try {
+      console.log('Adding bill to Firebase:', bill);
       await firebaseService.addBill(bill);
+      console.log('Bill added to Firebase successfully');
     } catch (error) {
+      console.error('Error adding bill to Firebase:', error);
       toast({
         title: "Error",
         description: "Failed to add bill. Please try again.",

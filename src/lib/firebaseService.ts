@@ -181,7 +181,7 @@ export class FirebaseService {
   async getBills(): Promise<FirebaseBill[]> {
     try {
       const billsRef = collection(db, this.getPaths().bills);
-      const q = query(billsRef, orderBy('dueDate', 'asc'));
+      const q = query(billsRef, orderBy('createdAt', 'desc'));
       const querySnapshot = await getDocs(q);
       
       return querySnapshot.docs.map(doc => ({
@@ -196,12 +196,23 @@ export class FirebaseService {
 
   async addBill(bill: Omit<FirebaseBill, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
+      console.log('Adding bill to Firebase with data:', bill);
+      
+      // Validate the bill data
+      if (!bill.name || !bill.amount || !bill.frequency) {
+        throw new Error('Missing required bill fields');
+      }
+      
       const billsRef = collection(db, this.getPaths().bills);
-      const docRef = await addDoc(billsRef, {
+      const billData = {
         ...bill,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-      });
+      };
+      
+      console.log('Saving bill data:', billData);
+      const docRef = await addDoc(billsRef, billData);
+      console.log('Bill added successfully with ID:', docRef.id);
       return docRef.id;
     } catch (error) {
       console.error('Error adding bill:', error);
@@ -235,14 +246,25 @@ export class FirebaseService {
   // Real-time bills listener
   subscribeToBills(callback: (bills: FirebaseBill[]) => void) {
     const billsRef = collection(db, this.getPaths().bills);
-    const q = query(billsRef, orderBy('dueDate', 'asc'));
+    // Order by createdAt instead of dueDate since not all bills have dueDate
+    const q = query(billsRef, orderBy('createdAt', 'desc'));
+    
+    console.log('Setting up bills subscription for path:', this.getPaths().bills);
     
     return onSnapshot(q, (querySnapshot) => {
-      const bills = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as FirebaseBill[];
+      console.log('Bills subscription triggered, docs count:', querySnapshot.docs.length);
+      const bills = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        console.log('Bill doc:', doc.id, data);
+        return {
+          id: doc.id,
+          ...data
+        };
+      }) as FirebaseBill[];
+      console.log('Processed bills:', bills);
       callback(bills);
+    }, (error) => {
+      console.error('Bills subscription error:', error);
     });
   }
 
@@ -271,6 +293,20 @@ export class FirebaseService {
       });
     } catch (error) {
       console.error('Error updating user profile:', error);
+      throw error;
+    }
+  }
+
+  // ===== ONBOARDING =====
+  async saveOnboardingData(data: { goal: string; income: string; setupType: 'simple' | 'advanced' }): Promise<void> {
+    try {
+      await this.updateUserProfile({
+        goal: data.goal,
+        income: data.income,
+        setupType: data.setupType,
+      });
+    } catch (error) {
+      console.error('Error saving onboarding data:', error);
       throw error;
     }
   }

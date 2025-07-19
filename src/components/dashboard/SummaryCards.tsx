@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { format, isSameMonth, parseISO, subMonths } from 'date-fns';
 
 interface SummaryCardsProps {
   transactions: Transaction[];
@@ -26,9 +27,12 @@ interface SummaryCardsProps {
 const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, showOnly }) => {
   const [modalState, setModalState] = useState({ isOpen: false, type: 'all' as 'income' | 'expense' | 'all', title: '' });
   const [resetDialog, setResetDialog] = useState({ isOpen: false, type: 'all' as 'income' | 'expense' | 'all', title: '' });
+  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
 
-  const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-  const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  // Filter transactions for the selected month (default: current month)
+  const filteredTransactions = transactions.filter(t => isSameMonth(parseISO(t.date), selectedMonth));
+  const totalIncome = filteredTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const totalExpenses = filteredTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
   const balance = totalIncome - totalExpenses;
 
   const formatCurrency = (amount: number) => {
@@ -56,8 +60,8 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
       value: totalIncome,
       description: 'Click to view income history',
       Icon: Landmark,
-      color: 'text-primary',
-      titleColor: 'text-primary',
+      color: 'text-gold-dark',
+      titleColor: 'text-gold-dark',
       onCardClick: () => handleCardClick('income', 'Income History'),
       onResetClick: (e: React.MouseEvent) => handleResetClick(e, 'income', 'Income'),
       showReset: true,
@@ -93,17 +97,32 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
 
   return (
     <>
-      {cardsToRender.map((card) => (
+      {cardsToRender.map((card, idx) => (
         <Card
           key={card.key}
-          className="bg-background text-foreground shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98] rounded-lg border border-border"
+          borderless
+          className="bg-background text-foreground shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-[1.02] active:scale-[0.98] rounded-lg"
           onClick={card.onCardClick}
         >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className={`text-sm font-medium text-card-foreground`}>{card.title}</CardTitle>
             <div className="flex items-center gap-2">
-              <card.Icon className={`h-5 w-5 text-primary`} />
+              <card.Icon className={`h-5 w-5 ${card.color}`} />
               <Eye className="h-4 w-4 text-muted-foreground" />
+              {/* Add History button for income and expenses */}
+              {['income', 'expense'].includes(card.key) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="ml-2 px-2 py-1 text-xs"
+                  onClick={e => {
+                    e.stopPropagation();
+                    setModalState({ isOpen: true, type: card.key as 'income' | 'expense', title: `${card.title} History` });
+                  }}
+                >
+                  History
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -126,12 +145,16 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
         </Card>
       ))}
 
+      {/* History Modal for Income/Expenses */}
       <TransactionHistoryModal
         isOpen={modalState.isOpen}
         onClose={() => setModalState(prev => ({ ...prev, isOpen: false }))}
         transactions={transactions}
         type={modalState.type}
         title={modalState.title}
+        monthSelector
+        selectedMonth={selectedMonth}
+        setSelectedMonth={setSelectedMonth}
       />
 
       <AlertDialog open={resetDialog.isOpen} onOpenChange={() => setResetDialog(prev => ({...prev, isOpen: false}))}>

@@ -112,7 +112,7 @@ const AiBudgetAdvisor: React.FC<AiBudgetAdvisorProps> = ({ transactions }) => {
   };
 
   return (
-    <Card className="bg-background text-foreground border border-border shadow-lg">
+    <Card className="bg-background text-foreground shadow-lg" borderless>
       <CardHeader>
         <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-primary" /> AI Budget Advisor
@@ -146,7 +146,7 @@ const AiBudgetAdvisor: React.FC<AiBudgetAdvisorProps> = ({ transactions }) => {
         )}
 
         {suggestions && suggestions.suggestions.length > 0 && (
-          <div className="mt-6 bg-accent p-4 rounded-lg text-card-foreground border border-border">
+          <div className="mt-6 bg-accent p-4 rounded-lg text-card-foreground">
             <h3 className="font-semibold mb-2 text-card-foreground">AI Tips:</h3>
             <ul className="list-disc list-inside space-y-1">
               {suggestions.suggestions.map((suggestion, idx) => (

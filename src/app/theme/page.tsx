@@ -12,7 +12,7 @@ const themes = [
   },
   {
     key: 'dark',
-    name: 'True Black',
+    name: 'Dark Mode',
     preview: 'Classic AMOLED black with gold highlights.'
   },
   {
