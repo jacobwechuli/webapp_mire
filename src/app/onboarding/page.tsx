@@ -20,7 +20,7 @@ const steps = [
     ],
   },
   {
-    label: 'What’s one short-term financial goal you want to achieve (1–3 months)?',
+    label: 'What’s one short-term financial goal you want to achieve (1–12 months)?',
     key: 'shortTermGoal',
     type: 'selectOrText',
     options: [

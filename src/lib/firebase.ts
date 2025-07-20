@@ -32,6 +32,22 @@ googleProvider.setCustomParameters({
   prompt: 'select_account'
 });
 
+// Add debugging for provider configuration
+console.log('🔧 Google Provider Config:', {
+  providerId: googleProvider.providerId
+});
+
+// For mobile devices, we might need additional configuration
+if (typeof window !== 'undefined') {
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  if (isMobile) {
+    console.log('📱 Mobile device detected, ensuring proper OAuth flow');
+    // Ensure we're using the right OAuth flow for mobile
+    googleProvider.addScope('email');
+    googleProvider.addScope('profile');
+  }
+}
+
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);
 

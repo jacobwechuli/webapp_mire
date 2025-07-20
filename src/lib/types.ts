@@ -40,6 +40,6 @@ export interface Profile {
 export const INCOME_CATEGORIES = ['Salary', 'Bonus', 'Freelance', 'Investment', 'Gift', 'Other Income'];
 export const EXPENSE_CATEGORIES = [
   'Housing', 'Transportation', 'Food', 'Utilities', 'Healthcare', 
-  'Entertainment', 'Education', 'Shopping', 'Personal Care', 
+  'Entertainment', 'Education', 'Shopping', 'Personal Care', 'Clothing',
   'Debt Payment', 'Savings Contribution', 'Gifts/Donations', 'Other Expense'
 ];
