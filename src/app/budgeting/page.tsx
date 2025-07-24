@@ -8,6 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { createFirebaseService } from '@/lib/firebaseService';
 import { Loader2, Trash2, Edit3, PlusCircle, Eye } from 'lucide-react';
 import BudgetTemplateModal from '@/components/dashboard/BudgetTemplateModal';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 interface BudgetTemplate {
   id?: string;
@@ -16,6 +17,7 @@ interface BudgetTemplate {
   expenses: { category: string; amount: number }[];
   frequency: 'monthly' | 'weekly' | 'random';
   notes?: string;
+  month?: string; // e.g. '2024-03' for March 2024
 }
 
 const defaultBudget: Omit<BudgetTemplate, 'id'> = {
@@ -24,6 +26,7 @@ const defaultBudget: Omit<BudgetTemplate, 'id'> = {
   expenses: [{ category: '', amount: 0 }],
   frequency: 'monthly',
   notes: '',
+  month: '',
 };
 
 export default function BudgetingPage() {
@@ -202,6 +205,27 @@ export default function BudgetingPage() {
               />
               <p className="text-xs text-muted-foreground mt-1">Give your budget a name(e.g. March Budget)</p>
             </div>
+            {/* Month Dropdown */}
+            <div>
+              <label className="block text-sm font-medium mb-1">Budget Month</label>
+              <Select value={form.month || ''} onValueChange={val => handleFormChange('month', val)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select month" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }).map((_, i) => {
+                    const now = new Date();
+                    const date = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                    const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                    const label = date.toLocaleString('default', { month: 'long' });
+                    return (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">Choose the month this budget applies to.</p>
+            </div>
             {/* Incomes */}
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -341,7 +365,10 @@ export default function BudgetingPage() {
                     onClick={() => handleViewBudget(budget)}
                   >
                     <div className="font-semibold text-card-foreground">{budget.name}</div>
-                    <div className="text-xs text-muted-foreground">{budget.frequency} | {budget.incomes.length} incomes, {budget.expenses.length} expenses</div>
+                    <div className="text-xs text-muted-foreground">
+                      {budget.frequency} | {budget.incomes.length} incomes, {budget.expenses.length} expenses
+                      {budget.month && ` | ${new Date(budget.month + '-01').toLocaleString('default', { month: 'long' })}`}
+                    </div>
                     {budget.notes && <div className="text-xs text-muted-foreground mt-1">{budget.notes}</div>}
                   </div>
                   <div className="flex flex-wrap gap-2">

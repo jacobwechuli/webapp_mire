@@ -27,6 +27,7 @@ export interface FirebaseUserProfile {
     expenses: { category: string; amount: number }[];
     frequency: 'monthly' | 'weekly' | 'random';
     notes?: string;
+    month?: string; // e.g. '2024-03' for March 2024
   }[];
 }
 
