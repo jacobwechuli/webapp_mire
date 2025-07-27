@@ -15,28 +15,12 @@ import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { user, loading, signIn, signInWithGoogle } = useAuth();
+  const { user, loading, signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [googleLoading, setGoogleLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  // Detect mobile device
-  useEffect(() => {
-    const checkIfMobile = () => {
-      const userAgent = navigator.userAgent;
-      const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
-      const isMobileDevice = mobileRegex.test(userAgent) || window.innerWidth <= 768;
-      setIsMobile(isMobileDevice);
-    };
-
-    checkIfMobile();
-    window.addEventListener('resize', checkIfMobile);
-    return () => window.removeEventListener('resize', checkIfMobile);
-  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -59,78 +43,6 @@ export default function LoginPage() {
       setIsLoading(false);
     }
   };
-
-  const handleGoogleSignIn = async () => {
-    setError('');
-    setGoogleLoading(true);
-
-    try {
-      if (isMobile) {
-        // For mobile: Use redirect flow instead of popup
-        // Set a flag in localStorage to track the auth attempt
-        localStorage.setItem('google_auth_attempt', 'signin');
-        localStorage.setItem('auth_redirect_path', '/overview');
-        
-        // Use redirect method for mobile
-        await signInWithGoogle('redirect');
-      } else {
-        // For desktop: Use popup flow with better error handling
-        await signInWithGoogle('popup');
-        router.push('/overview');
-      }
-    } catch (error: any) {
-      console.error('Google signin error:', error);
-      
-      // Clear any auth attempt flags on error
-      if (isMobile) {
-        localStorage.removeItem('google_auth_attempt');
-        localStorage.removeItem('auth_redirect_path');
-      }
-      
-      // Better error messages
-      if (error.code === 'popup-closed-by-user' || error.message?.includes('popup')) {
-        setError('Sign-in was cancelled. Please try again.');
-      } else if (error.code === 'network-request-failed') {
-        setError('Network error. Please check your connection and try again.');
-      } else {
-        setError(error.message || 'Google sign-in failed. Please try again.');
-      }
-    } finally {
-      setGoogleLoading(false);
-    }
-  };
-
-  // Handle redirect result on mobile
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      if (isMobile && typeof window !== 'undefined') {
-        const authAttempt = localStorage.getItem('google_auth_attempt');
-        const redirectPath = localStorage.getItem('auth_redirect_path');
-        
-        if (authAttempt === 'signin') {
-          try {
-            // Check if there's a pending redirect result
-            const result = await signInWithGoogle('getRedirectResult');
-            
-            if (result && result.user) {
-              // Clear the flags
-              localStorage.removeItem('google_auth_attempt');
-              localStorage.removeItem('auth_redirect_path');
-              
-              // Redirect to overview
-              router.push(redirectPath || '/overview');
-            }
-          } catch (error) {
-            console.error('Redirect result error:', error);
-            localStorage.removeItem('google_auth_attempt');
-            localStorage.removeItem('auth_redirect_path');
-          }
-        }
-      }
-    };
-
-    handleRedirectResult();
-  }, [isMobile, router, signInWithGoogle]);
 
   // Show loading while checking authentication
   if (loading) {
@@ -160,14 +72,11 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <Image
-            src="/images/goldplus-logo.png"
-            alt="GoldPlus Logo"
-            width={64}
-            height={64}
-            className="mx-auto h-16 w-16"
-          />
-          <h2 className="mt-6 text-3xl font-bold text-foreground">Sign in to your account</h2>
+          <Link href="https://goldplus-advisory.com" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to home
+          </Link>
+          <h2 className="text-3xl font-bold text-foreground">Sign in to your account</h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Or{' '}
             <Link href="/signup" className="font-medium text-primary hover:text-primary/80">
@@ -178,31 +87,6 @@ export default function LoginPage() {
 
         <Card className="bg-card text-card-foreground border border-border">
           <CardContent className="p-6">
-            <Button
-              type="button"
-              onClick={handleGoogleSignIn}
-              className="w-full flex items-center justify-center gap-2 bg-background text-foreground border border-border hover:bg-accent h-12 rounded-lg font-medium text-base transition-colors mb-2"
-              disabled={googleLoading || isLoading}
-            >
-              <span className="flex items-center justify-center">
-                <svg className="h-5 w-5 mr-2" viewBox="0 0 48 48"><g><path d="M44.5 20H24v8.5h11.7C34.7 33.9 29.8 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 6 .9 8.3 2.7l6.2-6.2C34.6 4.5 29.6 2.5 24 2.5 12.7 2.5 3.5 11.7 3.5 23S12.7 43.5 24 43.5c10.5 0 20-8.1 20-20 0-1.3-.1-2.1-.3-3.5z" fill="#FFC107"/><path d="M6.3 14.7l7 5.1C15.1 16.2 19.2 13 24 13c3.1 0 6 .9 8.3 2.7l6.2-6.2C34.6 4.5 29.6 2.5 24 2.5c-7.2 0-13 5.8-13 13 0 2.1.5 4.1 1.3 5.7z" fill="#FF3D00"/><path d="M24 44.5c5.8 0 10.7-1.9 14.3-5.2l-6.6-5.4C29.8 37 24 37 24 37c-5.8 0-10.7-3.1-13.7-7.7l-7 5.1C7.2 40.2 14.9 44.5 24 44.5z" fill="#4CAF50"/><path d="M44.5 20H24v8.5h11.7c-1.6 4.1-6.5 7-11.7 7-5.8 0-10.7-3.1-13.7-7.7l-7 5.1C7.2 40.2 14.9 44.5 24 44.5c10.5 0 20-8.1 20-20 0-1.3-.1-2.1-.3-3.5z" fill="#1976D2"/></g></svg>
-                {googleLoading ? (isMobile ? 'Redirecting to Google...' : 'Signing in...') : 'Sign in with Google'}
-              </span>
-            </Button>
-            
-            {/* Show mobile-specific message */}
-            {isMobile && googleLoading && (
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                You'll be redirected to Google's sign-in page. Please complete the process and you'll be brought back here.
-              </p>
-            )}
-            
-            <div className="flex items-center my-2">
-              <div className="flex-grow border-t border-border" />
-              <span className="mx-3 text-muted-foreground text-sm">OR</span>
-              <div className="flex-grow border-t border-border" />
-            </div>
-            
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <Label htmlFor="email" className="text-card-foreground">Email address</Label>
@@ -249,10 +133,10 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                disabled={loading}
+                disabled={isLoading}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
               >
-                {loading ? (
+                {isLoading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2"></div>
                     Signing in...

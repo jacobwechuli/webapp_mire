@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -25,28 +25,6 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app);
-
-// Initialize Google Auth Provider
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});
-
-// Add debugging for provider configuration
-console.log('🔧 Google Provider Config:', {
-  providerId: googleProvider.providerId
-});
-
-// For mobile devices, we might need additional configuration
-if (typeof window !== 'undefined') {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  if (isMobile) {
-    console.log('📱 Mobile device detected, ensuring proper OAuth flow');
-    // Ensure we're using the right OAuth flow for mobile
-    googleProvider.addScope('email');
-    googleProvider.addScope('profile');
-  }
-}
 
 // Initialize Cloud Firestore and get a reference to the service
 export const db = getFirestore(app);

@@ -7,11 +7,7 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   sendPasswordResetEmail,
-  onAuthStateChanged,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
-  GoogleAuthProvider
+  onAuthStateChanged
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
@@ -30,7 +26,6 @@ interface AuthContextType {
   signUp: (email: string, password: string, displayName?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
-  signInWithGoogle: (method?: 'popup' | 'redirect' | 'getRedirectResult') => Promise<any>;
   getAuthToken: () => Promise<string | null>;
 }
 
@@ -50,33 +45,34 @@ const createOrUpdateUserProfile = async (user: User, displayName?: string) => {
     const userRef = doc(db, 'users', user.uid);
     const userDoc = await getDoc(userRef);
     
-    const userData = {
-      id: user.uid,
-      email: user.email,
-      displayName: displayName || user.displayName || '',
-      photoURL: user.photoURL || '',
-      createdAt: userDoc.exists() ? userDoc.data().createdAt : new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    if (userDoc.exists()) {
-      // Update existing profile
-      await updateDoc(userRef, {
-        email: userData.email,
-        displayName: userData.displayName,
-        photoURL: userData.photoURL,
-        updatedAt: userData.updatedAt,
+    if (!userDoc.exists()) {
+      // Create new user profile
+      await setDoc(userRef, {
+        email: user.email,
+        displayName: displayName || user.displayName || '',
+        photoURL: user.photoURL || '',
+        createdAt: new Date(),
+        onboardingComplete: false,
+        budget: {
+          incomes: [],
+          expenses: []
+        }
       });
     } else {
-      // Create new profile
-      await setDoc(userRef, userData);
+      // Update existing user profile if needed
+      const updateData: any = {};
+      if (displayName && displayName !== userDoc.data().displayName) {
+        updateData.displayName = displayName;
+      }
+      if (Object.keys(updateData).length > 0) {
+        await updateDoc(userRef, updateData);
+      }
     }
   } catch (error) {
     console.error('Error creating/updating user profile:', error);
   }
 };
 
-// Helper function to convert Firebase User to our interface
 const convertFirebaseUser = (firebaseUser: User): FirebaseUser => ({
   id: firebaseUser.uid,
   email: firebaseUser.email,
@@ -107,62 +103,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error('Sign in error:', error);
       throw new Error(error.message || 'Failed to sign in');
-    }
-  };
-
-  // Google sign-in with support for both popup and redirect
-  const signInWithGoogle = async (method: 'popup' | 'redirect' | 'getRedirectResult' = 'popup') => {
-    const provider = new GoogleAuthProvider();
-    
-    // Add additional scopes if needed
-    provider.addScope('email');
-    provider.addScope('profile');
-    
-    // Set custom parameters
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    });
-
-    try {
-      if (method === 'redirect') {
-        // For mobile devices - use redirect
-        console.log('📱 Using redirect for Google sign-in');
-        return await signInWithRedirect(auth, provider);
-      } else if (method === 'getRedirectResult') {
-        // Check for redirect result
-        console.log('🔄 Checking for redirect result');
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          await createOrUpdateUserProfile(result.user);
-        }
-        return result;
-      } else {
-        // For desktop - use popup
-        console.log('🖥️ Using popup for Google sign-in');
-        const result = await signInWithPopup(auth, provider);
-        await createOrUpdateUserProfile(result.user);
-        return result;
-      }
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      
-      // Provide more specific error messages
-      let errorMessage = 'Failed to sign in with Google';
-      if (error.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'Sign-in was cancelled. Please try again.';
-      } else if (error.code === 'auth/popup-blocked') {
-        errorMessage = 'Pop-up was blocked. Please allow pop-ups and try again.';
-      } else if (error.code === 'auth/network-request-failed') {
-        errorMessage = 'Network error. Please check your connection and try again.';
-      } else if (error.code === 'auth/operation-not-allowed') {
-        errorMessage = 'Google sign-in is not enabled. Please contact support.';
-      } else if (error.code === 'auth/unauthorized-domain') {
-        errorMessage = 'This domain is not authorized for Google sign-in.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      throw new Error(errorMessage);
     }
   };
 
@@ -214,26 +154,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return unsubscribe;
   }, []);
 
-  // Handle redirect results on app initialization
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      try {
-        console.log('🔄 Checking for redirect result on app init...');
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          console.log('✅ Redirect sign-in successful:', result.user.email);
-          await createOrUpdateUserProfile(result.user);
-        } else {
-          console.log('ℹ️ No redirect result found');
-        }
-      } catch (error) {
-        console.error('❌ Redirect result error:', error);
-      }
-    };
-
-    handleRedirectResult();
-  }, []);
-
   const value = {
     user,
     loading,
@@ -241,7 +161,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     logout,
     resetPassword,
-    signInWithGoogle,
     getAuthToken,
   };
 

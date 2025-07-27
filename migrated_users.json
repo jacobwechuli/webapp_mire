@@ -1,0 +1,65 @@
+{
+  "summary": {
+    "totalUsers": 12,
+    "migratedUsers": 8,
+    "timestamp": "2025-07-27T09:05:50.603Z"
+  },
+  "users": [
+    {
+      "email": "mutonyiwambugu2@gmail.com",
+      "uid": "4FFRoSv7DuXziVqnZQAPGfngkWy1",
+      "password": "T9LdRSEHimVj",
+      "displayName": "Wambugu Mutonyi",
+      "timestamp": "2025-07-27T09:05:20.570Z"
+    },
+    {
+      "email": "fw.mutonyi@gmail.com",
+      "uid": "6QzKxOc5H4h9JvqGx4XOrhnUYE13",
+      "password": "ttxBX6@v6op8",
+      "displayName": "francis mutonyi",
+      "timestamp": "2025-07-27T09:05:24.440Z"
+    },
+    {
+      "email": "mirunelson019@gmail.com",
+      "uid": "BPHdLhvxaHP5daGOWuJ0IJg2ZZG2",
+      "password": "HohGbGLHPQU9",
+      "displayName": "Nelson Miru",
+      "timestamp": "2025-07-27T09:05:29.803Z"
+    },
+    {
+      "email": "wechulijac@gmail.com",
+      "uid": "DaFnRko4LXZB20ZucYGtUV7G90L2",
+      "password": "e95sq2N66Za@",
+      "displayName": "Jacob Wechuli",
+      "timestamp": "2025-07-27T09:05:33.357Z"
+    },
+    {
+      "email": "lupamo93@gmail.com",
+      "uid": "aNEGZWgzlufGZyY1WQftEKWeIdj1",
+      "password": "pxPG1lkQiWVP",
+      "displayName": "norbert lupamo",
+      "timestamp": "2025-07-27T09:05:36.696Z"
+    },
+    {
+      "email": "ngatiab37@gmail.com",
+      "uid": "hRQhW19y9FWr1U4nbhhh2Pv6uEr1",
+      "password": "GVJQUN6b#UMy",
+      "displayName": "Brian Ngatia",
+      "timestamp": "2025-07-27T09:05:41.750Z"
+    },
+    {
+      "email": "lincolnkimani@gmail.com",
+      "uid": "hkxJhBmQAHRMGaXMT2ihsFa44002",
+      "password": "NQ6fmFLrLCvJ",
+      "displayName": "Lincoln Kimani",
+      "timestamp": "2025-07-27T09:05:46.141Z"
+    },
+    {
+      "email": "lyngsshyro@gmail.com",
+      "uid": "oFWMWdBhBmQuo3o8l8EcCpREtxd2",
+      "password": "haX06tTBkqmG",
+      "displayName": "Lyngs Shyro",
+      "timestamp": "2025-07-27T09:05:50.603Z"
+    }
+  ]
+}
