@@ -13,17 +13,40 @@ type MonthlyStat = { month: string; income: number; expense: number; net: number
 const COLORS = ['#FFD600', '#FFB300', '#FF7043', '#8D6E63', '#29B6F6', '#66BB6A', '#AB47BC', '#EC407A'];
 
 function getMonthRange(transactions: Transaction[]): string[] {
-  const months = Array.from(new Set(transactions.map(t => format(parseISO(t.date), 'yyyy-MM'))));
+  const months = Array.from(new Set(
+    transactions
+      .filter(t => t.date && !isNaN(Date.parse(t.date)))
+      .map(t => {
+        try {
+          return format(parseISO(t.date), 'yyyy-MM');
+        } catch (error) {
+          console.warn('Error parsing date for transaction:', t, error);
+          return null;
+        }
+      })
+      .filter((month): month is string => month !== null)
+  ));
   return months.sort().reverse();
 }
 
 function getMonthlyStats(transactions: Transaction[]): MonthlyStat[] {
   const stats: { [month: string]: { month: string; income: number; expense: number } } = {};
   transactions.forEach((t: Transaction) => {
-    const month = format(parseISO(t.date), 'yyyy-MM');
-    if (!stats[month]) stats[month] = { month, income: 0, expense: 0 };
-    if (t.type === 'income') stats[month].income += t.amount;
-    if (t.type === 'expense') stats[month].expense += t.amount;
+    // Validate date before parsing
+    if (!t.date || isNaN(Date.parse(t.date))) {
+      console.warn('Invalid date found in transaction:', t);
+      return; // Skip this transaction
+    }
+    
+    try {
+      const month = format(parseISO(t.date), 'yyyy-MM');
+      if (!stats[month]) stats[month] = { month, income: 0, expense: 0 };
+      if (t.type === 'income') stats[month].income += t.amount;
+      if (t.type === 'expense') stats[month].expense += t.amount;
+    } catch (error) {
+      console.warn('Error parsing date for transaction:', t, error);
+      return; // Skip this transaction
+    }
   });
   return Object.values(stats).map((s) => ({ ...s, net: s.income - s.expense })).sort((a, b) => b.month.localeCompare(a.month));
 }
@@ -31,19 +54,41 @@ function getMonthlyStats(transactions: Transaction[]): MonthlyStat[] {
 // Utility hook to detect mobile (SSR safe)
 function useIsMobile() {
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  
   useEffect(() => {
+    setMounted(true);
     const check = () => setIsMobile(window.innerWidth < 640);
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
   }, []);
-  return isMobile;
+  
+  // Return false during SSR to prevent hydration mismatch
+  return mounted ? isMobile : false;
 }
 
 export default function StatsPage() {
-  const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [selectedMonth, setSelectedMonth] = useState<Date | null>(null);
   const { transactions, loading } = useSWRData();
   const isMobile = useIsMobile();
+  
+  // Initialize selectedMonth on client side to prevent hydration mismatch
+  useEffect(() => {
+    if (selectedMonth === null) {
+      setSelectedMonth(new Date());
+    }
+  }, [selectedMonth]);
+  
+  // Don't render until we have a selectedMonth to prevent hydration issues
+  if (selectedMonth === null) {
+    return <div className="w-full max-w-5xl mx-auto">Loading...</div>;
+  }
+  
+  // Show loading state while data is being fetched
+  if (loading) {
+    return <div className="w-full max-w-5xl mx-auto">Loading your stats...</div>;
+  }
 
   // Combine transactions and expenditure data
   const allTransactions = [
@@ -62,7 +107,17 @@ export default function StatsPage() {
   ];
 
   // Filter for selected month
-  const filtered = allTransactions.filter(t => isSameMonth(parseISO(t.date), selectedMonth));
+  const filtered = allTransactions.filter(t => {
+    if (!t.date || isNaN(Date.parse(t.date))) {
+      return false; // Skip transactions with invalid dates
+    }
+    try {
+      return isSameMonth(parseISO(t.date), selectedMonth);
+    } catch (error) {
+      console.warn('Error parsing date for filtering:', t, error);
+      return false;
+    }
+  });
 
   // Pie chart data (category breakdown)
   const expenseByCategory: { [category: string]: number } = {};
@@ -142,7 +197,14 @@ export default function StatsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={monthlyStats} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" tickFormatter={m => format(parseISO(m + '-01'), 'MMM yy')} tick={{ fontSize: isMobile ? 10 : 12 }} />
+                    <XAxis dataKey="month" tickFormatter={m => {
+                      try {
+                        return format(parseISO(m + '-01'), 'MMM yy');
+                      } catch (error) {
+                        console.warn('Error formatting month:', m, error);
+                        return m;
+                      }
+                    }} tick={{ fontSize: isMobile ? 10 : 12 }} />
                     <YAxis tick={{ fontSize: isMobile ? 10 : 12 }} />
                     <Tooltip wrapperStyle={{ fontSize: '0.85rem' }} />
                     {!isMobile && <Legend wrapperStyle={{ fontSize: '0.85rem' }} />}
@@ -176,7 +238,14 @@ export default function StatsPage() {
                     <tbody>
                       {filtered.map(t => (
                         <tr key={t.id}>
-                          <td>{format(parseISO(t.date), 'MMM d')}</td>
+                          <td>{(() => {
+                            try {
+                              return format(parseISO(t.date), 'MMM d');
+                            } catch (error) {
+                              console.warn('Error formatting date for table:', t.date, error);
+                              return 'Invalid Date';
+                            }
+                          })()}</td>
                           <td>{t.description}</td>
                           <td>{t.category}</td>
                           <td className="text-right">{t.type === 'income' ? '+' : '-'}KES {t.amount.toFixed(2)}</td>

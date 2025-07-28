@@ -42,7 +42,7 @@ const initializeTheme = () => {
 };
 
 function DashboardShell({ children }: { children: React.ReactNode }) {
-  const { user, logout } = useAuth();
+  const { user, loading, logout } = useAuth();
   const pathnameRaw = usePathname();
   const pathname = pathnameRaw || '';
   const isPublicRoute = publicRoutes.includes(pathname) || pathname.startsWith('/onboarding');
@@ -89,6 +89,18 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
     }
     router.push('/login');
   };
+
+  // Show loading state while auth is being determined (after all hooks are called)
+  if (loading) {
+    return (
+      <div className="bg-background min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (isPublicRoute) {
     return <>{children}</>;
