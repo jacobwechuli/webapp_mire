@@ -1,11 +1,13 @@
 "use client";
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Transaction } from '@/lib/types';
-import { Calendar, DollarSign, Tag } from 'lucide-react';
+import { Calendar, DollarSign, Tag, PlusCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { format, isSameMonth, parseISO, subMonths, addMonths } from 'date-fns';
 
 interface TransactionHistoryModalProps {
@@ -29,6 +31,8 @@ const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
   selectedMonth,
   setSelectedMonth
 }) => {
+  const router = useRouter();
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'KES' }).format(amount);
   };
@@ -50,6 +54,12 @@ const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
   }
 
   const totalAmount = filteredTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+  const handleAddTransaction = (transactionType: 'income' | 'expense') => {
+    // Navigate to expenditure page with transaction type as URL parameter
+    router.push(`/expenditure?type=${transactionType}`);
+    onClose(); // Close the modal
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -87,9 +97,36 @@ const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
                 <p className="text-sm text-muted-foreground">Total {type === 'all' ? 'Transactions' : type === 'income' ? 'Income' : 'Expenses'}</p>
                 <p className="text-2xl font-bold text-card-foreground">{formatCurrency(totalAmount)}</p>
               </div>
-              <Badge variant={type === 'income' ? 'default' : type === 'expense' ? 'destructive' : 'secondary'} className="bg-primary text-primary-foreground">
-                {filteredTransactions.length} {filteredTransactions.length === 1 ? 'transaction' : 'transactions'}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant={type === 'income' ? 'default' : type === 'expense' ? 'destructive' : 'secondary'} className="bg-primary text-primary-foreground">
+                  {filteredTransactions.length} {filteredTransactions.length === 1 ? 'transaction' : 'transactions'}
+                </Badge>
+                {/* Add Transaction Buttons - only show for income/expense specific modals */}
+                {type !== 'all' && (
+                  <div className="flex gap-2">
+                    {type === 'income' && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddTransaction('income')}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      >
+                        <PlusCircle className="mr-1 h-3 w-3" />
+                        Add Revenue
+                      </Button>
+                    )}
+                    {type === 'expense' && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddTransaction('expense')}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        <PlusCircle className="mr-1 h-3 w-3" />
+                        Add Expenditure
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex-1 overflow-auto">
@@ -97,6 +134,31 @@ const TransactionHistoryModal: React.FC<TransactionHistoryModalProps> = ({
               <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
                 <Tag className="h-8 w-8 mb-2 opacity-50 text-muted-foreground" />
                 <p>No {type === 'all' ? '' : type} transactions found</p>
+                {/* Show add buttons when no transactions exist */}
+                {type !== 'all' && (
+                  <div className="flex gap-2 mt-4">
+                    {type === 'income' && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddTransaction('income')}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      >
+                        <TrendingUp className="mr-1 h-3 w-3" />
+                        Add Revenue
+                      </Button>
+                    )}
+                    {type === 'expense' && (
+                      <Button
+                        size="sm"
+                        onClick={() => handleAddTransaction('expense')}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        <TrendingDown className="mr-1 h-3 w-3" />
+                        Add Expenditure
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <Table className="bg-card text-card-foreground">

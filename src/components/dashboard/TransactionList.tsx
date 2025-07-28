@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { List, TrendingUp, TrendingDown, Edit3, Trash2 } from 'lucide-react';
+import { List, TrendingUp, TrendingDown, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { FirebaseTransaction } from '@/lib/firebaseDataStructure';
 import { TransactionSkeleton } from '@/components/ui/skeleton';
@@ -13,7 +13,7 @@ import { ListTransition } from '@/components/layout/PageTransition';
 
 interface TransactionListProps {
   transactions: FirebaseTransaction[];
-  onEditTransaction: (transaction: FirebaseTransaction) => void;
+  onEditTransaction?: (transaction: FirebaseTransaction) => void;
   onDeleteTransaction: (transactionId: string) => void;
   loading?: boolean;
 }
@@ -59,10 +59,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, onEditT
                     </div>
                     <div className="flex items-center space-x-2">
                       <p className={`font-semibold ${t.type === 'income' ? 'text-primary' : 'text-muted-foreground'}`}>{t.type === 'income' ? '+' : '-'} {formatCurrency(t.amount)}</p>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditTransaction(t)}>
-                        <Edit3 className="h-4 w-4 text-muted-foreground hover:text-primary" />
-                        <span className="sr-only">Edit</span>
-                      </Button>
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDeleteTransaction(t.id)}>
                         <Trash2 className="h-4 w-4 text-muted-foreground hover:text-primary" />
                         <span className="sr-only">Delete</span>

@@ -56,9 +56,9 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
   const cardData = [
     {
       key: 'income',
-      title: 'Total Income',
+      title: 'Total Revenue',
       value: totalIncome,
-      description: 'Click to view income history',
+      description: 'Click to view revenue history',
       Icon: Landmark,
       color: 'text-gold-dark',
       titleColor: 'text-gold-dark',
@@ -68,9 +68,9 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
     },
     {
       key: 'expense',
-      title: 'Total Expenses',
+      title: 'Total Expenditure',
       value: totalExpenses,
-      description: 'Click to view expense history',
+      description: 'Click to view expenditure history',
       Icon: TrendingDown,
       color: 'text-destructive',
       titleColor: 'text-destructive',

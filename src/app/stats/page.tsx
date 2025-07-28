@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { Transaction } from '@/lib/types';
 import { useSWRData } from '@/hooks/useSWRData';
+import { FirebaseExpenditure } from '@/lib/firebaseDataStructure';
 
 type MonthlyStat = { month: string; income: number; expense: number; net: number };
 
@@ -44,8 +45,24 @@ export default function StatsPage() {
   const { transactions, loading } = useSWRData();
   const isMobile = useIsMobile();
 
+  // Combine transactions and expenditure data
+  const allTransactions = [
+    ...transactions,
+    // Convert expenditure to transaction format for stats
+    ...([] as FirebaseExpenditure[]).map(exp => ({
+      id: exp.id,
+      description: exp.description,
+      amount: exp.amount,
+      type: 'expense' as const,
+      category: exp.category,
+      date: exp.date,
+      createdAt: exp.createdAt,
+      updatedAt: exp.updatedAt,
+    }))
+  ];
+
   // Filter for selected month
-  const filtered = transactions.filter(t => isSameMonth(parseISO(t.date), selectedMonth));
+  const filtered = allTransactions.filter(t => isSameMonth(parseISO(t.date), selectedMonth));
 
   // Pie chart data (category breakdown)
   const expenseByCategory: { [category: string]: number } = {};
@@ -55,10 +72,10 @@ export default function StatsPage() {
   const pieData = Object.entries(expenseByCategory).map(([name, value]) => ({ name, value }));
 
   // Monthly trend data
-  const monthlyStats = getMonthlyStats(transactions).reverse();
+  const monthlyStats = getMonthlyStats(allTransactions).reverse();
 
   return (
-    <div className="max-w-5xl mx-auto py-10 px-4">
+    <div className="w-full max-w-5xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Monthly Breakdown & Analytics</h1>
       {loading ? (
         <div className="text-center py-20 text-muted-foreground">Loading your stats...</div>
@@ -84,7 +101,7 @@ export default function StatsPage() {
           {/* Pie Chart: Spending Breakdown */}
           <Card borderless className="mb-8">
             <CardHeader>
-              <CardTitle>Spending Breakdown (Pie Chart)</CardTitle>
+              <CardTitle>Spending Breakdown</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="w-full aspect-[4/3] sm:aspect-[16/9] max-w-full">

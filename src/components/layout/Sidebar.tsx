@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle, Coins, Home, Target, Wallet, BarChart3 } from 'lucide-react';
+import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle, Coins, Home, Target, Wallet, BarChart3, Calendar } from 'lucide-react';
 
 const menuItems = [
     { name: 'Dashboard', icon: Home, href: '/overview' },
     { name: 'Stats', icon: BarChart3, href: '/stats' },
     { name: 'Goals', icon: Target, href: '/goals' },
+    { name: 'Bills', icon: Calendar, href: '/bills' },
     { name: 'Learning', icon: BookOpen, href: '/learning' },
     { name: 'Settings', icon: Settings, href: '/settings' },
     { name: 'Budget', icon: Wallet, href: '/budgeting' },
+    { name: 'Expenditure', icon: ArrowUpCircle, href: '/expenditure' },
 ];
 
 interface SidebarProps {

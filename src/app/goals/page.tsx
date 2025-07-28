@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, Loader2 } from "lucide-react";
 import SavingsGoalCard from "@/components/goals/SavingsGoalCard";
 import AddGoalModal from "@/components/goals/AddGoalModal";
-import DashboardHeader from '@/components/layout/DashboardHeader';
 import { useRouter } from 'next/navigation';
 import { useFirebaseData } from '@/hooks/useFirebaseData';
 import { FirebaseSavingsGoal } from '@/lib/firebaseDataStructure';
@@ -62,16 +61,11 @@ export default function GoalsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col min-h-screen bg-background text-card-foreground">
-        <DashboardHeader />
-        <main className="container py-8 flex-1 pl-20 md:pl-20 lg:pl-20">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="flex flex-col items-center gap-4">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="text-muted-foreground">Loading your goals...</p>
-            </div>
-          </div>
-        </main>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground">Loading your goals...</p>
+        </div>
       </div>
     );
   }
@@ -87,9 +81,7 @@ export default function GoalsPage() {
           "description": "Set, track, and achieve your savings goals with GoldPlus.",
         })}
       </Script>
-      <div className="flex flex-col min-h-screen bg-background text-card-foreground">
-        <DashboardHeader />
-        <main className="container py-8 flex-1 pl-20 md:pl-20 lg:pl-20">
+      <div className="w-full max-w-6xl mx-auto">
           <div className="mb-6">
             <Button 
               variant="outline" 
@@ -128,7 +120,6 @@ export default function GoalsPage() {
           </div>
 
           <AddGoalModal open={addModalOpen} onOpenChange={setAddModalOpen} onAddGoal={handleAddGoal} />
-        </main>
       </div>
     </>
   );

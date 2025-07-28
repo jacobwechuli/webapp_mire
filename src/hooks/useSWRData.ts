@@ -1,6 +1,6 @@
 import useSWR, { mutate } from 'swr';
 import { CachedFirebaseService } from '@/lib/cachedFirebaseService';
-import { FirebaseTransaction, FirebaseSavingsGoal, FirebaseBill } from '@/lib/firebaseDataStructure';
+import { FirebaseTransaction, FirebaseSavingsGoal, FirebaseBill, FirebaseExpenditure } from '@/lib/firebaseDataStructure';
 import { Transaction } from '@/lib/types';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
@@ -19,6 +19,7 @@ const createFirebaseFetcher = (service: CachedFirebaseService) => ({
   transactions: () => service.getTransactions(),
   savingsGoals: () => service.getSavingsGoals(),
   bills: () => service.getBills(),
+  expenditure: () => service.getExpenditure(),
   profile: () => service.getUserProfile(),
 });
 
@@ -35,6 +36,7 @@ export const useSWRData = () => {
     transactions: user?.id ? `transactions-${user.id}` : null,
     savingsGoals: user?.id ? `savingsGoals-${user.id}` : null,
     bills: user?.id ? `bills-${user.id}` : null,
+    expenditure: user?.id ? `expenditure-${user.id}` : null,
     profile: user?.id ? `profile-${user.id}` : null,
   };
 
@@ -46,7 +48,7 @@ export const useSWRData = () => {
     mutate: mutateTransactions,
   } = useSWR(
     keys.transactions,
-    fetchers?.transactions,
+    fetchers?.transactions || null,
     {
       refreshInterval: 30000, // Refresh every 30 seconds
       revalidateOnFocus: true,
@@ -61,7 +63,7 @@ export const useSWRData = () => {
     mutate: mutateSavingsGoals,
   } = useSWR(
     keys.savingsGoals,
-    fetchers?.savingsGoals,
+    fetchers?.savingsGoals || null,
     {
       refreshInterval: 30000,
       revalidateOnFocus: true,
@@ -76,7 +78,7 @@ export const useSWRData = () => {
     mutate: mutateBills,
   } = useSWR(
     keys.bills,
-    fetchers?.bills,
+    fetchers?.bills || null,
     {
       refreshInterval: 30000,
       revalidateOnFocus: true,
@@ -91,7 +93,7 @@ export const useSWRData = () => {
     mutate: mutateProfile,
   } = useSWR(
     keys.profile,
-    fetchers?.profile,
+    fetchers?.profile || null,
     {
       refreshInterval: 60000, // Refresh every minute
       revalidateOnFocus: true,

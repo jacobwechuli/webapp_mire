@@ -1,6 +1,6 @@
 import { FirebaseService } from './firebaseService';
 import { dataCache, userCache, cacheUtils } from './cache';
-import { FirebaseTransaction, FirebaseSavingsGoal, FirebaseBill, FirebaseUserProfile } from './firebaseDataStructure';
+import { FirebaseTransaction, FirebaseSavingsGoal, FirebaseBill, FirebaseExpenditure, FirebaseUserProfile } from './firebaseDataStructure';
 
 export class CachedFirebaseService extends FirebaseService {
   constructor(userId: string) {
@@ -104,6 +104,39 @@ export class CachedFirebaseService extends FirebaseService {
   async deleteBill(id: string): Promise<void> {
     await super.deleteBill(id);
     cacheUtils.invalidateDataType(this.getUserId(), 'bills');
+  }
+
+  // Override getExpenditure with caching
+  async getExpenditure(): Promise<FirebaseExpenditure[]> {
+    const cacheKey = cacheUtils.generateDataKey('expenditure', this.getUserId());
+    const cached = dataCache.get<FirebaseExpenditure[]>(cacheKey);
+    
+    if (cached) {
+      return cached;
+    }
+
+    const expenditure = await super.getExpenditure();
+    dataCache.set(cacheKey, expenditure, 5 * 60 * 1000); // 5 minutes cache
+    return expenditure;
+  }
+
+  // Override addExpenditure to invalidate cache
+  async addExpenditure(expenditure: Omit<FirebaseExpenditure, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    const result = await super.addExpenditure(expenditure);
+    cacheUtils.invalidateDataType(this.getUserId(), 'expenditure');
+    return result;
+  }
+
+  // Override updateExpenditure to invalidate cache
+  async updateExpenditure(id: string, updates: Partial<FirebaseExpenditure>): Promise<void> {
+    await super.updateExpenditure(id, updates);
+    cacheUtils.invalidateDataType(this.getUserId(), 'expenditure');
+  }
+
+  // Override deleteExpenditure to invalidate cache
+  async deleteExpenditure(id: string): Promise<void> {
+    await super.deleteExpenditure(id);
+    cacheUtils.invalidateDataType(this.getUserId(), 'expenditure');
   }
 
   // Override getUserProfile with caching

@@ -183,7 +183,7 @@ export default function BudgetingPage() {
   const overBudget = totalIncome > 0 && totalExpenses > totalIncome;
 
   return (
-    <div className="max-w-4xl mx-auto py-6 sm:py-10 px-4 sm:px-6">
+    <div className="w-full max-w-4xl mx-auto">
       <h1 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4">Budget Templates</h1>
       <p className="mb-6 text-muted-foreground text-sm sm:text-base">Create, edit, and save different budget templates. You can play around with the numbers to see how your finances would look.</p>
       <Card borderless className="mb-8">

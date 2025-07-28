@@ -1,0 +1,35 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // User-specific data access
+    match /users/{userId} {
+      // Allow users to read/write their own profile
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow users to read/write their own transactions
+      match /transactions/{transactionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Allow users to read/write their own savings goals
+      match /savingsGoals/{goalId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Allow users to read/write their own bills
+      match /bills/{billId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Allow users to read/write their own expenditure
+      match /expenditure/{expenditureId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Legacy support for flat collections (if needed)
+    match /transactions/{transactionId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+} 

@@ -18,6 +18,7 @@ import {
   FirebaseTransaction, 
   FirebaseSavingsGoal, 
   FirebaseBill,
+  FirebaseExpenditure,
   FirebaseUserProfile,
   FIREBASE_COLLECTIONS,
   getFirebasePaths 
@@ -265,6 +266,75 @@ export class FirebaseService {
       callback(bills);
     }, (error) => {
       console.error('Bills subscription error:', error);
+    });
+  }
+
+  // ===== EXPENDITURE =====
+  async getExpenditure(): Promise<FirebaseExpenditure[]> {
+    try {
+      const expenditureRef = collection(db, this.getPaths().expenditure);
+      const q = query(expenditureRef, orderBy('date', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as FirebaseExpenditure[];
+    } catch (error) {
+      console.error('Error fetching expenditure:', error);
+      throw error;
+    }
+  }
+
+  async addExpenditure(expenditure: Omit<FirebaseExpenditure, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    try {
+      const expenditureRef = collection(db, this.getPaths().expenditure);
+      const docRef = await addDoc(expenditureRef, {
+        ...expenditure,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding expenditure:', error);
+      throw error;
+    }
+  }
+
+  async updateExpenditure(id: string, updates: Partial<FirebaseExpenditure>): Promise<void> {
+    try {
+      const expenditureRef = doc(db, this.getPaths().expenditure, id);
+      await updateDoc(expenditureRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Error updating expenditure:', error);
+      throw error;
+    }
+  }
+
+  async deleteExpenditure(id: string): Promise<void> {
+    try {
+      const expenditureRef = doc(db, this.getPaths().expenditure, id);
+      await deleteDoc(expenditureRef);
+    } catch (error) {
+      console.error('Error deleting expenditure:', error);
+      throw error;
+    }
+  }
+
+  // Real-time expenditure listener
+  subscribeToExpenditure(callback: (expenditure: FirebaseExpenditure[]) => void) {
+    const expenditureRef = collection(db, this.getPaths().expenditure);
+    const q = query(expenditureRef, orderBy('date', 'desc'));
+    
+    return onSnapshot(q, (querySnapshot) => {
+      const expenditure = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as FirebaseExpenditure[];
+      callback(expenditure);
     });
   }
 

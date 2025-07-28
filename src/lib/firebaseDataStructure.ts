@@ -75,12 +75,24 @@ export interface FirebaseBill {
   updatedAt: string;
 }
 
+export interface FirebaseExpenditure {
+  id: string;
+  description: string;
+  amount: number;
+  category: string;
+  date: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // Firebase Collection Paths
 export const FIREBASE_COLLECTIONS = {
   USERS: 'users',
   TRANSACTIONS: 'transactions',
   SAVINGS_GOALS: 'savingsGoals',
   BILLS: 'bills',
+  EXPENDITURE: 'expenditure',
 } as const;
 
 // Firebase Document Paths
@@ -89,6 +101,7 @@ export const getFirebasePaths = (userId: string) => ({
   transactions: `${FIREBASE_COLLECTIONS.USERS}/${userId}/${FIREBASE_COLLECTIONS.TRANSACTIONS}`,
   savingsGoals: `${FIREBASE_COLLECTIONS.USERS}/${userId}/${FIREBASE_COLLECTIONS.SAVINGS_GOALS}`,
   bills: `${FIREBASE_COLLECTIONS.USERS}/${userId}/${FIREBASE_COLLECTIONS.BILLS}`,
+  expenditure: `${FIREBASE_COLLECTIONS.USERS}/${userId}/${FIREBASE_COLLECTIONS.EXPENDITURE}`,
 });
 
 // Data Structure Overview:

@@ -31,10 +31,11 @@ interface TransactionFormProps {
   onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
   existingTransaction?: FirebaseTransaction | null; // For editing, optional
   onClose: () => void;
+  preSelectedType?: 'income' | 'expense'; // For pre-selecting transaction type
 }
 
-const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, existingTransaction, onClose }) => {
-  const [selectedType, setSelectedType] = useState<TransactionType>(existingTransaction?.type || 'expense');
+const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, existingTransaction, onClose, preSelectedType }) => {
+  const [selectedType, setSelectedType] = useState<TransactionType>(existingTransaction?.type || preSelectedType || 'expense');
 
   const defaultValues = existingTransaction
     ? {
@@ -47,7 +48,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
     : {
         description: '',
         amount: 0,
-        type: 'expense' as TransactionType,
+        type: (preSelectedType || 'expense') as TransactionType,
         category: '',
         date: new Date(),
       };
@@ -69,8 +70,17 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
         category: existingTransaction.category,
         date: parseISO(existingTransaction.date),
       });
+    } else if (preSelectedType) {
+      setSelectedType(preSelectedType);
+      form.reset({
+        description: '',
+        amount: 0,
+        type: preSelectedType,
+        category: '',
+        date: new Date(),
+      });
     }
-  }, [existingTransaction, form]);
+  }, [existingTransaction, preSelectedType, form]);
 
 
   const onSubmit = (data: TransactionFormValues) => {
@@ -90,10 +100,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
     <Card className="bg-background text-foreground shadow-lg border border-border">
       <CardHeader>
         <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
-          {existingTransaction ? 'Edit Transaction' : 'Add Transaction'}
+          {existingTransaction ? 'Edit Transaction' : 'Add Revenue/Expenditure'}
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          {existingTransaction ? 'Update your transaction details.' : 'Fill in the details to add a new transaction.'}
+          {existingTransaction ? 'Update your transaction details.' : 'Fill in the details to add a new revenue/expenditure.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -128,8 +138,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent className="bg-background text-foreground border-border">
-                    <SelectItem value="income"><TrendingUp className="mr-2 h-4 w-4 inline-block" />Income</SelectItem>
-                    <SelectItem value="expense"><TrendingDown className="mr-2 h-4 w-4 inline-block" />Expense</SelectItem>
+                    <SelectItem value="income"><TrendingUp className="mr-2 h-4 w-4 inline-block" />Revenue</SelectItem>
+                    <SelectItem value="expense"><TrendingDown className="mr-2 h-4 w-4 inline-block" />Expenditure</SelectItem>
                   </SelectContent>
                 </Select>
               )}

@@ -6,11 +6,9 @@ import SummaryCards from '@/components/dashboard/SummaryCards';
 import SpendingChart from '@/components/dashboard/SpendingChart';
 import AiBudgetAdvisor from '@/components/dashboard/AiBudgetAdvisor';
 import FinancialTips from '@/components/dashboard/FinancialTips';
-import TransactionForm from '@/components/dashboard/TransactionForm';
+
 import TransactionList from '@/components/dashboard/TransactionList';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { PlusCircle, Trash2, Coins, LogOut, User, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -43,8 +41,6 @@ import Script from 'next/script';
 
 function DashboardContent() {
   const [isMounted, setIsMounted] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<FirebaseTransaction | null>(null);
   const [transactionToDelete, setTransactionToDelete] = useState<string | null>(null);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const { profile, loading: profileLoading, updateProfile } = useProfile();
@@ -59,8 +55,6 @@ function DashboardContent() {
     transactions,
     bills,
     loading,
-    addTransaction,
-    updateTransaction,
     deleteTransaction,
     updateBill,
   } = useSWRData();
@@ -71,7 +65,7 @@ function DashboardContent() {
 
   // Focus new income row
   React.useEffect(() => {
-    if (incomeRefs.current.length && profile?.budget?.incomes?.length > 1) {
+    if (incomeRefs.current.length && profile?.budget?.incomes?.length && profile?.budget?.incomes?.length > 1) {
       const lastIdx = profile.budget.incomes.length - 1;
       incomeRefs.current[lastIdx]?.focus();
     }
@@ -79,7 +73,7 @@ function DashboardContent() {
 
   // Focus new expense row
   React.useEffect(() => {
-    if (expenseRefs.current.length && profile?.budget?.expenses?.length > 1) {
+    if (expenseRefs.current.length && profile?.budget?.expenses?.length && profile?.budget?.expenses?.length > 1) {
       const lastIdx = profile.budget.expenses.length - 1;
       expenseRefs.current[lastIdx]?.focus();
     }
@@ -122,30 +116,7 @@ function DashboardContent() {
     return () => window.removeEventListener('open-adjust-budget', handler);
   }, [profileLoading, profile]);
 
-  const handleAddTransaction = async (transaction: Omit<Transaction, 'id'>) => {
-    try {
-      if (editingTransaction) {
-        await updateTransaction(editingTransaction.id, {
-          description: transaction.description,
-          amount: transaction.amount,
-          type: transaction.type,
-          category: transaction.category,
-          date: transaction.date,
-        });
-      } else {
-        await addTransaction(transaction);
-      }
-      setEditingTransaction(null);
-      setIsFormOpen(false);
-    } catch (error) {
-      // Error handling is done in the hook
-    }
-  };
 
-  const handleEditTransaction = (transaction: FirebaseTransaction) => {
-    setEditingTransaction(transaction);
-    setIsFormOpen(true);
-  };
   
   const handleDeleteTransaction = (transactionId: string) => {
     setTransactionToDelete(transactionId);
@@ -209,15 +180,7 @@ function DashboardContent() {
     }
   };
 
-  const handleUpdateBills = async (newBills: FirebaseBill[]) => {
-    try {
-      // For now, we'll just update the bills state
-      // In a real implementation, you'd want to sync this with Firebase
-      console.log('Bills updated:', newBills);
-    } catch (error) {
-      // Error handling
-    }
-  };
+
 
   // Remove onboarding modal handlers and calculations
   // Remove onboarding modal JSX
@@ -247,36 +210,11 @@ function DashboardContent() {
     <div className="flex flex-col min-h-screen bg-background text-card-foreground">
       <DashboardHeader />
       
-      <Dialog open={isFormOpen} onOpenChange={(isOpen) => {
-        setIsFormOpen(isOpen);
-        if (!isOpen) setEditingTransaction(null);
-      }}>
-        <DialogContent className="sm:max-w-[480px] p-6 bg-card text-card-foreground border border-border">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-headline text-card-foreground">
-              {editingTransaction ? 'Edit Transaction' : 'Add New Transaction'}
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              {editingTransaction ? 'Update the details of your transaction.' : 'Enter details for your income or expense.'}
-            </DialogDescription>
-          </DialogHeader>
-          <TransactionForm 
-            onAddTransaction={handleAddTransaction} 
-            existingTransaction={editingTransaction}
-            onClose={() => {
-              setIsFormOpen(false);
-              setEditingTransaction(null);
-            }}
-          />
-        </DialogContent>
-      </Dialog>
+
 
       <main className="flex-1 w-full max-w-none py-8 px-4 md:px-8 bg-background text-card-foreground">
         <div className="space-y-8">
-          {/* Add Transaction Hint */}
-          <div className="mb-2 text-center text-base font-medium text-muted-foreground">
-            Click the "+" to add a transaction
-          </div>
+
           <div className="grid gap-6 mb-8 w-full">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <CardTransition index={0}>
@@ -364,7 +302,7 @@ function DashboardContent() {
             <CardTransition index={6}>
               <Card className="bg-card border border-border">
                 <CardContent className="p-6">
-                  <UpcomingBillsCard bills={bills} onUpdateBills={handleUpdateBills} />
+                  <UpcomingBillsCard bills={bills} />
                 </CardContent>
               </Card>
             </CardTransition>
@@ -375,7 +313,6 @@ function DashboardContent() {
               <CardContent className="p-6">
                 <TransactionList 
                   transactions={transactions}
-                  onEditTransaction={handleEditTransaction}
                   onDeleteTransaction={handleDeleteTransaction}
                   loading={loading}
                 />
@@ -387,24 +324,6 @@ function DashboardContent() {
 
       {/* Floating Action Buttons with Tooltips (stacked bottom right) */}
       <TooltipProvider>
-        {/* Add Transaction Button with Tooltip */}
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span>
-              <FloatingActionButton 
-                onClick={() => {
-                  setIsFormOpen(true);
-                  setEditingTransaction(null);
-                }}
-                size="lg"
-                className="right-6 bottom-24"
-              />
-            </span>
-          </TooltipTrigger>
-          <TooltipContent side="left" align="center">
-            Add Transaction
-          </TooltipContent>
-        </Tooltip>
         {/* Chatbot Button with Tooltip */}
         <Tooltip>
           <TooltipTrigger asChild>
