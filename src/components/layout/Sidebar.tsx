@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle, Coins, Home, Target, Wallet, BarChart3, Calendar } from 'lucide-react';
+import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle, Coins, Home, Target, Wallet, BarChart3, Calendar, Smartphone } from 'lucide-react';
 
 const menuItems = [
     { name: 'Dashboard', icon: Home, href: '/overview' },

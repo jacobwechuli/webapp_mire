@@ -45,7 +45,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = () => {
   };
 
   return (
-    <header className={`sticky top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-transform duration-300 ${hidden ? '-translate-y-full' : 'translate-y-0'}`}>
+    <header className={`sticky top-0 z-40 w-full border-b border-border bg-background transition-transform duration-300 ${hidden ? '-translate-y-full' : 'translate-y-0'}`}>
       <div className="container flex h-20 items-center justify-between">
         <div className="flex items-center gap-4">
           <Link href="/overview" className="flex items-center gap-3 md:ml-0 ml-20">
@@ -61,7 +61,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = () => {
                   <Menu className="h-7 w-7 text-foreground" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-background border border-border text-foreground min-w-[160px]">
+              <DropdownMenuContent align="end" className="bg-card border border-border text-card-foreground min-w-[160px]">
                 <DropdownMenuItem onClick={() => router.push('/profile')} className="text-base py-2">
                   Profile
                 </DropdownMenuItem>

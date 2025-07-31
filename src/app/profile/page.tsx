@@ -58,6 +58,10 @@ export default function ProfilePage() {
     refetch();
   };
 
+  const handleChangePassword = () => {
+    router.push('/forgot-password');
+  };
+
   const age = calculateAge(editing ? form.dateOfBirth : profile?.dateOfBirth || '');
 
   if (loading) return <div className="flex justify-center items-center min-h-screen">Loading...</div>;
@@ -165,8 +169,18 @@ export default function ProfilePage() {
                   }); }}>Cancel</Button>
                 </>
               ) : (
-                <Button variant="gold" size="lg" className="w-full" onClick={() => setEditing(true)}>Edit Profile</Button>
+                <>
+                  <Button variant="gold" size="lg" className="w-full" onClick={() => setEditing(true)}>Edit Profile</Button>
+                  <Button variant="outline" size="lg" className="w-full" onClick={handleChangePassword}>Change Password</Button>
+                </>
               )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  );
+} 
             </div>
           </CardContent>
         </Card>
