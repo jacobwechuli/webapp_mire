@@ -430,6 +430,75 @@ export class FirebaseService {
       throw error;
     }
   }
+
+  // ===== MPESA TRANSACTIONS =====
+  async getMpesaTransactions(): Promise<FirebaseTransaction[]> {
+    try {
+      const mpesaTransactionsRef = collection(db, this.getPaths().mpesaTransactions);
+      const q = query(mpesaTransactionsRef, orderBy('date', 'desc'));
+      const querySnapshot = await getDocs(q);
+      
+      return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as FirebaseTransaction[];
+    } catch (error) {
+      console.error('Error fetching M-Pesa transactions:', error);
+      throw error;
+    }
+  }
+
+  async addMpesaTransaction(transaction: Omit<FirebaseTransaction, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+    try {
+      const mpesaTransactionsRef = collection(db, this.getPaths().mpesaTransactions);
+      const docRef = await addDoc(mpesaTransactionsRef, {
+        ...transaction,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error adding M-Pesa transaction:', error);
+      throw error;
+    }
+  }
+
+  async updateMpesaTransaction(id: string, updates: Partial<FirebaseTransaction>): Promise<void> {
+    try {
+      const transactionRef = doc(db, this.getPaths().mpesaTransactions, id);
+      await updateDoc(transactionRef, {
+        ...updates,
+        updatedAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error('Error updating M-Pesa transaction:', error);
+      throw error;
+    }
+  }
+
+  async deleteMpesaTransaction(id: string): Promise<void> {
+    try {
+      const transactionRef = doc(db, this.getPaths().mpesaTransactions, id);
+      await deleteDoc(transactionRef);
+    } catch (error) {
+      console.error('Error deleting M-Pesa transaction:', error);
+      throw error;
+    }
+  }
+
+  // Real-time M-Pesa transactions listener
+  subscribeToMpesaTransactions(callback: (transactions: FirebaseTransaction[]) => void) {
+    const mpesaTransactionsRef = collection(db, this.getPaths().mpesaTransactions);
+    const q = query(mpesaTransactionsRef, orderBy('date', 'desc'));
+    
+    return onSnapshot(q, (querySnapshot) => {
+      const transactions = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as FirebaseTransaction[];
+      callback(transactions);
+    });
+  }
 }
 
 // Export a factory function to create Firebase service instances

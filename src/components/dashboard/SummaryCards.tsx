@@ -16,7 +16,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { format, isSameMonth, parseISO, subMonths } from 'date-fns';
+import { format, isSameMonth, parseISO, subMonths, isAfter, isBefore, subDays, subWeeks, subMonths as dateFnsSubMonths } from 'date-fns';
+
+type TimeFilter = '1d' | '3d' | '1w' | '1m' | 'all';
 
 interface SummaryCardsProps {
   transactions: Transaction[];
@@ -28,9 +30,46 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
   const [modalState, setModalState] = useState({ isOpen: false, type: 'all' as 'income' | 'expense' | 'all', title: '' });
   const [resetDialog, setResetDialog] = useState({ isOpen: false, type: 'all' as 'income' | 'expense' | 'all', title: '' });
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
 
-  // Filter transactions for the selected month (default: current month)
-  const filteredTransactions = transactions.filter(t => isSameMonth(parseISO(t.date), selectedMonth));
+  // Filter transactions based on time filter
+  const getFilteredTransactions = () => {
+    const now = new Date();
+    let filterStartDate: Date;
+
+    switch (timeFilter) {
+      case '1d':
+        filterStartDate = subDays(now, 1);
+        break;
+      case '3d':
+        filterStartDate = subDays(now, 3);
+        break;
+      case '1w':
+        filterStartDate = subWeeks(now, 1);
+        break;
+      case '1m':
+        filterStartDate = dateFnsSubMonths(now, 1);
+        break;
+      case 'all':
+      default:
+        filterStartDate = new Date(0); // Beginning of time
+        break;
+    }
+
+    return transactions.filter(t => {
+      if (!t.date) return false;
+      
+      try {
+        const txDate = parseISO(t.date);
+        return isAfter(txDate, filterStartDate) && isBefore(txDate, now);
+      } catch (error) {
+        console.warn('Error parsing transaction date:', t.date, error);
+        return false;
+      }
+    });
+  };
+
+  const filteredTransactions = getFilteredTransactions();
   const totalIncome = filteredTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
   const totalExpenses = filteredTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
   const balance = totalIncome - totalExpenses;
@@ -52,6 +91,17 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
     onReset(resetDialog.type);
     setResetDialog(prev => ({ ...prev, isOpen: false }));
   };
+
+  const TimeFilterButton = ({ filter, label }: { filter: TimeFilter; label: string }) => (
+    <Button
+      variant={timeFilter === filter ? "default" : "outline"}
+      size="sm"
+      onClick={() => setTimeFilter(filter)}
+      className={timeFilter === filter ? "bg-gold text-black" : ""}
+    >
+      {label}
+    </Button>
+  );
 
   const cardData = [
     {
@@ -97,6 +147,27 @@ const SummaryCards: React.FC<SummaryCardsProps> = ({ transactions, onReset, show
 
   return (
     <>
+      {/* Time Filter Buttons */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        <TimeFilterButton filter="1d" label="1 Day" />
+        <TimeFilterButton filter="3d" label="3 Days" />
+        <TimeFilterButton filter="1w" label="1 Week" />
+        <TimeFilterButton filter="1m" label="1 Month" />
+        <TimeFilterButton filter="all" label="All Time" />
+      </div>
+
+      {/* Filter Status */}
+      <div className="mb-6 p-3 bg-muted rounded-lg text-center">
+        <p className="text-sm text-muted-foreground">
+          Showing {filteredTransactions.length} transactions for {
+            timeFilter === '1d' ? '1 Day' : 
+            timeFilter === '3d' ? '3 Days' : 
+            timeFilter === '1w' ? '1 Week' : 
+            timeFilter === '1m' ? '1 Month' : 'All Time'
+          }
+        </p>
+      </div>
+
       {cardsToRender.map((card, idx) => (
         <Card
           key={card.key}

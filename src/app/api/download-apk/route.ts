@@ -1,36 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 export async function GET(request: NextRequest) {
   try {
-    const apkPath = path.join(process.cwd(), 'public', 'downloads', 'goldplus-advisory-v1.apk');
+    // GitHub releases URL - replace with your actual repository URL
+    const githubReleasesUrl = 'https://github.com/yourusername/goldplus-advisory/releases/latest/download/goldplus-advisory-v1.apk';
     
-    // Check if file exists
-    try {
-      await fs.access(apkPath);
-    } catch (error) {
-      return NextResponse.json({ error: 'APK file not found' }, { status: 404 });
-    }
-
-    // Read the file
-    const apkBuffer = await fs.readFile(apkPath);
-    
-    // Get file stats for content length
-    const stats = await fs.stat(apkPath);
-
-    // Return the file with proper headers
-    return new NextResponse(apkBuffer, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/vnd.android.package-archive',
-        'Content-Disposition': 'attachment; filename="goldplus-advisory-v1.apk"',
-        'Content-Length': stats.size.toString(),
-        'Cache-Control': 'no-cache',
-      },
-    });
+    // Redirect to GitHub releases
+    return NextResponse.redirect(githubReleasesUrl, 302);
   } catch (error) {
-    console.error('Error serving APK:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error('Error redirecting to GitHub releases:', error);
+    return NextResponse.json({ error: 'Failed to redirect to download' }, { status: 500 });
   }
 } 

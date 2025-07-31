@@ -90,6 +90,7 @@ export interface FirebaseExpenditure {
 export const FIREBASE_COLLECTIONS = {
   USERS: 'users',
   TRANSACTIONS: 'transactions',
+  MPESA_TRANSACTIONS: 'mpesaTransactions',
   SAVINGS_GOALS: 'savingsGoals',
   BILLS: 'bills',
   EXPENDITURE: 'expenditure',
@@ -99,6 +100,7 @@ export const FIREBASE_COLLECTIONS = {
 export const getFirebasePaths = (userId: string) => ({
   userProfile: `${FIREBASE_COLLECTIONS.USERS}/${userId}`,
   transactions: `${FIREBASE_COLLECTIONS.USERS}/${userId}/${FIREBASE_COLLECTIONS.TRANSACTIONS}`,
+  mpesaTransactions: `${FIREBASE_COLLECTIONS.USERS}/${userId}/${FIREBASE_COLLECTIONS.MPESA_TRANSACTIONS}`,
   savingsGoals: `${FIREBASE_COLLECTIONS.USERS}/${userId}/${FIREBASE_COLLECTIONS.SAVINGS_GOALS}`,
   bills: `${FIREBASE_COLLECTIONS.USERS}/${userId}/${FIREBASE_COLLECTIONS.BILLS}`,
   expenditure: `${FIREBASE_COLLECTIONS.USERS}/${userId}/${FIREBASE_COLLECTIONS.EXPENDITURE}`,
