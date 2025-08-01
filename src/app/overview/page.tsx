@@ -334,8 +334,13 @@ function DashboardContent() {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
-                  // Open GitHub releases in a new tab
-                  window.open('https://github.com/jacobwechuli/webapp_mire/releases/latest', '_blank');
+                  // Trigger direct download from GitHub releases
+                  const link = document.createElement('a');
+                  link.href = '/api/download-apk';
+                  link.download = 'goldplus-advisory-v1.apk';
+                  document.body.appendChild(link);
+                  link.click();
+                  document.body.removeChild(link);
                 }}
                 className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary/90 transition-colors"
               >
