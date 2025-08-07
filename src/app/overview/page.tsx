@@ -369,7 +369,7 @@ function DashboardContent() {
             <div className="absolute inset-0 bg-[url('/images/sparkle.png')] bg-no-repeat bg-right opacity-10"></div>
             <div className="relative z-10">
               <h1 className="text-xl md:text-2xl font-bold mb-4">Financial Overview</h1>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="text-xs font-medium text-purple-200">Total Revenue</h3>
@@ -400,21 +400,7 @@ function DashboardContent() {
                   <p className="text-xs text-purple-200 mt-1">This month</p>
                 </div>
                 
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/15 transition-all duration-300">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs font-medium text-purple-200">Net Balance</h3>
-                    <div className="w-6 h-6 bg-blue-400/20 rounded-full flex items-center justify-center">
-                      <svg className="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                      </svg>
-                    </div>
-                  </div>
-                  <p className="text-2xl font-bold text-white">
-                    KES {(transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0) - 
-                          transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0)).toLocaleString()}
-                  </p>
-                  <p className="text-xs text-purple-200 mt-1">Available</p>
-                </div>
+
               </div>
             </div>
           </div>

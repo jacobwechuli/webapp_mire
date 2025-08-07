@@ -100,17 +100,17 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
     <Card className="bg-background text-foreground shadow-lg border border-border">
       <CardHeader>
         <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
-          {existingTransaction ? 'Edit Transaction' : 'Add Revenue/Expenditure'}
+          {existingTransaction ? 'Edit Cash Transaction' : 'Add Cash Transaction'}
         </CardTitle>
         <CardDescription className="text-muted-foreground">
-          {existingTransaction ? 'Update your transaction details.' : 'Fill in the details to add a new revenue/expenditure.'}
+          {existingTransaction ? 'Update your cash transaction details.' : 'Track your cash income and expenses to get a complete picture of your finances.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 p-1">
           <div>
             <Label htmlFor="description" className="text-card-foreground">Description</Label>
-            <Input id="description" {...form.register('description')} placeholder="e.g., Groceries, Salary" className="bg-background text-foreground border-border" />
+            <Input id="description" {...form.register('description')} placeholder="e.g., Groceries, Salary, Cash Payment" className="bg-background text-foreground border-border" />
             {form.formState.errors.description && <p className="text-sm text-destructive mt-1">{form.formState.errors.description.message}</p>}
           </div>
 
@@ -138,8 +138,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent className="bg-background text-foreground border-border">
-                    <SelectItem value="income"><TrendingUp className="mr-2 h-4 w-4 inline-block" />Revenue</SelectItem>
-                    <SelectItem value="expense"><TrendingDown className="mr-2 h-4 w-4 inline-block" />Expenditure</SelectItem>
+                    <SelectItem value="income"><TrendingUp className="mr-2 h-4 w-4 inline-block" />Cash Income</SelectItem>
+                    <SelectItem value="expense"><TrendingDown className="mr-2 h-4 w-4 inline-block" />Cash Expense</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -202,7 +202,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({ onAddTransaction, exi
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose} className="border-border text-foreground hover:bg-accent">Cancel</Button>
             <Button type="submit" variant="gold" className="bg-primary text-primary-foreground hover:bg-primary/90">
-              <PlusCircle className="mr-2 h-4 w-4" /> {existingTransaction ? 'Save Changes' : 'Add Transaction'}
+              <PlusCircle className="mr-2 h-4 w-4" /> {existingTransaction ? 'Save Changes' : 'Add Cash Transaction'}
             </Button>
           </div>
         </form>
