@@ -52,7 +52,6 @@ const createOrUpdateUserProfile = async (user: User, displayName?: string) => {
         displayName: displayName || user.displayName || '',
         photoURL: user.photoURL || '',
         createdAt: new Date(),
-        onboardingComplete: false,
         budget: {
           incomes: [],
           expenses: []
