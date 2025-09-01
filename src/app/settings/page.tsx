@@ -242,6 +242,22 @@ export default function SettingsPage() {
                         Sign Out
                       </Button>
                     </div>
+
+                    <Separator />
+
+                    <div>
+                      <h3 className="text-lg font-semibold mb-2 text-destructive">Delete Account</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Permanently delete your account and all associated data. This action cannot be undone.
+                      </p>
+                      <Button
+                        onClick={() => router.push('/delete')}
+                        variant="destructive"
+                        className="bg-destructive hover:bg-destructive/90"
+                      >
+                        Delete Account
+                      </Button>
+                    </div>
                   </div>
 
                   {message && (

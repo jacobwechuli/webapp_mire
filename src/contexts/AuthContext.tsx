@@ -7,9 +7,12 @@ import {
   createUserWithEmailAndPassword, 
   signOut, 
   sendPasswordResetEmail,
-  onAuthStateChanged
+  onAuthStateChanged,
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from 'firebase/auth';
-import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 
 interface FirebaseUser {
@@ -26,6 +29,7 @@ interface AuthContextType {
   signUp: (email: string, password: string, displayName?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
   getAuthToken: () => Promise<string | null>;
 }
 
@@ -69,6 +73,41 @@ const createOrUpdateUserProfile = async (user: User, displayName?: string) => {
     }
   } catch (error) {
     console.error('Error creating/updating user profile:', error);
+  }
+};
+
+// Helper function to delete all user data from Firestore
+const deleteUserData = async (userId: string) => {
+  try {
+    const batch = writeBatch(db);
+    
+    // Collections to delete
+    const collections = [
+      'transactions',
+      'mpesaTransactions', 
+      'savingsGoals',
+      'bills',
+      'expenditure'
+    ];
+    
+    // Delete all documents in each collection
+    for (const collectionName of collections) {
+      const collectionRef = collection(db, `users/${userId}/${collectionName}`);
+      const querySnapshot = await getDocs(collectionRef);
+      querySnapshot.docs.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+    }
+    
+    // Delete the user profile document
+    const userRef = doc(db, 'users', userId);
+    batch.delete(userRef);
+    
+    // Commit all deletions
+    await batch.commit();
+  } catch (error) {
+    console.error('Error deleting user data:', error);
+    throw error;
   }
 };
 
@@ -123,6 +162,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const deleteAccount = async (password: string) => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser || !currentUser.email) {
+        throw new Error('No authenticated user found');
+      }
+
+      // Re-authenticate user before deletion
+      const credential = EmailAuthProvider.credential(currentUser.email, password);
+      await reauthenticateWithCredential(currentUser, credential);
+
+      // Delete all user data from Firestore
+      await deleteUserData(currentUser.uid);
+
+      // Delete the Firebase auth account
+      await deleteUser(currentUser);
+    } catch (error: any) {
+      console.error('Delete account error:', error);
+      throw new Error(error.message || 'Failed to delete account');
+    }
+  };
+
   const getAuthToken = async (): Promise<string | null> => {
     try {
       const currentUser = auth.currentUser;
@@ -160,6 +221,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     logout,
     resetPassword,
+    deleteAccount,
     getAuthToken,
   };
 

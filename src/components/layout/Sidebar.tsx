@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle, Coins, Home, Target, Wallet, BarChart3, Calendar, Smartphone } from 'lucide-react';
+import { Settings, PiggyBank, BookOpen, Menu, ChevronLeft, User, LogOut, Palette, ArrowUpCircle, Coins, Home, Target, Wallet, BarChart3, Calendar, Smartphone, Trash2 } from 'lucide-react';
 
 const menuItems = [
     { name: 'Dashboard', icon: Home, href: '/overview' },
@@ -169,6 +169,21 @@ const Sidebar: React.FC<SidebarProps> = ({
                         {!shouldShowExpanded && (
                             <div className="sidebar__tooltip">
                                 Logout
+                            </div>
+                        )}
+                    </button>
+                    <button 
+                        className="sidebar__delete-account" 
+                        onClick={() => window.location.href = '/delete'}
+                        aria-label="Delete Account"
+                    >
+                        <div className="sidebar__delete-account-icon">
+                            <Trash2 className="w-5 h-5" />
+                        </div>
+                        <span className="sidebar__delete-account-text">Delete Account</span>
+                        {!shouldShowExpanded && (
+                            <div className="sidebar__tooltip">
+                                Delete Account
                             </div>
                         )}
                     </button>
@@ -412,7 +427,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     .sidebar.collapsed:not(.expanded) .sidebar__menu-text,
                     .sidebar.collapsed:not(.expanded) .sidebar__logo-texts,
                     .sidebar.collapsed:not(.expanded) .sidebar__profile-info,
-                    .sidebar.collapsed:not(.expanded) .sidebar__logout-text {
+                    .sidebar.collapsed:not(.expanded) .sidebar__logout-text,
+                    .sidebar.collapsed:not(.expanded) .sidebar__delete-account-text {
                         opacity: 0;
                         width: 0;
                         overflow: hidden;
@@ -420,7 +436,8 @@ const Sidebar: React.FC<SidebarProps> = ({
                     .sidebar.collapsed.expanded .sidebar__menu-text,
                     .sidebar.collapsed.expanded .sidebar__logo-texts,
                     .sidebar.collapsed.expanded .sidebar__profile-info,
-                    .sidebar.collapsed.expanded .sidebar__logout-text {
+                    .sidebar.collapsed.expanded .sidebar__logout-text,
+                    .sidebar.collapsed.expanded .sidebar__delete-account-text {
                         opacity: 1;
                         width: auto;
                         overflow: visible;
@@ -464,7 +481,8 @@ const Sidebar: React.FC<SidebarProps> = ({
 
                     .sidebar.collapsed .sidebar__menu-link:hover .sidebar__tooltip,
                     .sidebar.collapsed .sidebar__profile:hover .sidebar__tooltip,
-                    .sidebar.collapsed .sidebar__logout:hover .sidebar__tooltip {
+                    .sidebar.collapsed .sidebar__logout:hover .sidebar__tooltip,
+                    .sidebar.collapsed .sidebar__delete-account:hover .sidebar__tooltip {
                         opacity: 1;
                         visibility: visible;
                         transform: translateY(-50%) translateX(0.5rem);
@@ -573,6 +591,49 @@ const Sidebar: React.FC<SidebarProps> = ({
                     }
 
                     .sidebar__logout-text {
+                        font-weight: 500;
+                        transition: all 0.3s ease;
+                        text-align: left;
+                    }
+
+                    .sidebar__delete-account {
+                        display: flex;
+                        align-items: center;
+                        padding: 0.875rem 1rem;
+                        color: #888888;
+                        background: none;
+                        border: none;
+                        border-radius: 12px;
+                        transition: all 0.3s ease;
+                        white-space: nowrap;
+                        width: 100%;
+                        cursor: pointer;
+                        position: relative;
+                        overflow: hidden;
+                        margin-top: 0.5rem;
+                    }
+                    
+                    .sidebar__delete-account:hover {
+                        background-color: #1a1a1a;
+                        color: #ff4444;
+                        transform: translateX(4px);
+                    }
+
+                    .sidebar__delete-account-icon {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin-right: 1rem;
+                        min-width: 24px;
+                        transition: all 0.3s ease;
+                        flex-shrink: 0;
+                    }
+
+                    .sidebar__delete-account:hover .sidebar__delete-account-icon {
+                        transform: scale(1.1);
+                    }
+
+                    .sidebar__delete-account-text {
                         font-weight: 500;
                         transition: all 0.3s ease;
                         text-align: left;
