@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  runtime  = "cloudflare"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum BillFrequency {
+  ONE_TIME
+  MONTHLY
+  WEEKLY
+}
+
+enum BudgetFrequency {
+  MONTHLY
+  WEEKLY
+  RANDOM
+}
+
+model User {
+  id                String           @id @default(cuid())
+  email             String           @unique
+  passwordHash      String?
+  displayName       String           @default("")
+  photoUrl          String?
+  dateOfBirth       DateTime?
+  phone             String?
+  country           String?
+  onboarding        Json?
+  onboardingComplete Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  sessions          Session[]
+  transactions      Transaction[]
+  savingsGoals      SavingsGoal[]
+  bills             Bill[]
+  expenditures     Expenditure[]
+  budgetTemplates  BudgetTemplate[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  userId      String
+  description String
+  amount      Decimal         @db.Decimal(14, 2)
+  type        TransactionType
+  category    String
+  occurredAt  DateTime
+  source      String          @default("manual")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, occurredAt])
+}
+
+model SavingsGoal {
+  id        String             @id @default(cuid())
+  userId    String
+  item      String
+  target    Decimal            @db.Decimal(14, 2)
+  saved     Decimal            @default(0) @db.Decimal(14, 2)
+  targetDate DateTime
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deposits  SavingsGoalDeposit[]
+
+  @@index([userId, targetDate])
+}
+
+model SavingsGoalDeposit {
+  id        String      @id @default(cuid())
+  goalId    String
+  amount    Decimal     @db.Decimal(14, 2)
+  occurredAt DateTime
+  createdAt DateTime    @default(now())
+  goal      SavingsGoal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId, occurredAt])
+}
+
+model Bill {
+  id          String        @id @default(cuid())
+  userId      String
+  name        String
+  amount      Decimal       @db.Decimal(14, 2)
+  frequency   BillFrequency
+  dueDate     DateTime?
+  monthlyDay  Int?
+  weeklyDay   Int?
+  weeklyTime  String?
+  description String        @default("")
+  isPaid      Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dueDate])
+}
+
+model Expenditure {
+  id          String   @id @default(cuid())
+  userId      String
+  description String
+  amount      Decimal  @db.Decimal(14, 2)
+  category    String
+  occurredAt  DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, occurredAt])
+}
+
+model BudgetTemplate {
+  id        String          @id @default(cuid())
+  userId    String
+  name      String
+  frequency BudgetFrequency
+  incomes   Json
+  expenses  Json
+  notes     String?
+  month     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@index([userId, month])
+}

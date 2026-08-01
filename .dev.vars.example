@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local Cloudflare Worker preview. Never commit real values.
+DATABASE_URL="prisma+postgres://replace-with-your-prisma-postgres-connection-string"
+SESSION_SECRET="generate-a-long-random-secret-before-production"
+GOOGLE_GENAI_API_KEY="replace-with-your-server-side-google-ai-key"
