@@ -2,8 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { suggestBudget } from '@/ai/flows/suggest-budget';
 import { apiCache, cacheUtils } from '@/lib/cache';
 import { rateLimiters } from '@/lib/rateLimit';
+import { verifyAuth } from '@/lib/auth';
+
+interface BudgetRequest {
+  income: number;
+  expenses: any[];
+}
 
 export async function POST(req: NextRequest) {
+  // Verify authentication first
+  const { user, error: authError } = await verifyAuth(req);
+  if (authError || !user) {
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+  }
+
   // Apply rate limiting
   const rateLimitResult = await rateLimiters.ai.checkLimit(req);
   if (!rateLimitResult.success) {
@@ -26,7 +38,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const { income, expenses } = await req.json();
+  const body = await req.json() as BudgetRequest;
+  const { income, expenses } = body;
 
   if (!income || !expenses) {
     return NextResponse.json({ error: 'Income and expenses are required' }, { status: 400 });

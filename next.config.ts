@@ -1,12 +1,11 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   images: {
     remotePatterns: [
@@ -47,14 +46,6 @@ const nextConfig: NextConfig = {
             value: 'no-cache, no-store, must-revalidate', // No cache for API routes
           },
         ],
-      },
-    ]
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/',
-        destination: '/index.html',
       },
     ];
   },

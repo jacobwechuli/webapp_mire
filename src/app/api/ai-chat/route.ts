@@ -3,15 +3,11 @@ import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
 import { apiCache, cacheUtils } from '@/lib/cache';
 import { rateLimiters } from '@/lib/rateLimit';
+import { verifyAuth } from '@/lib/auth';
+import { getDatabase } from '@/lib/db';
 
 const ChatInputSchema = z.object({
   message: z.string(),
-  userContext: z.object({
-    uid: z.string().optional(),
-    email: z.string().optional(),
-    displayName: z.string().optional(),
-    profile: z.any().optional(),
-  }).optional(),
   history: z.array(z.object({
     role: z.enum(['user', 'ai']),
     content: z.string(),
@@ -21,6 +17,12 @@ const ChatInputSchema = z.object({
 
 export async function POST(req: Request) {
   try {
+    // Verify authentication first - derive identity server-side from verified session
+    const { user, error: authError } = await verifyAuth(req);
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     // Apply rate limiting
     const rateLimitResult = await rateLimiters.ai.checkLimit(req);
     if (!rateLimitResult.success) {
@@ -44,12 +46,27 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { message, userContext, history, tone } = ChatInputSchema.parse(body);
+    const { message, history, tone } = ChatInputSchema.parse(body);
+
+    // Get user context from database server-side
+    const db = getDatabase();
+    const userProfile = await db.user.findUnique({
+      where: { id: user.uid },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        country: true,
+        dateOfBirth: true,
+        onboarding: true,
+        onboardingComplete: true,
+      },
+    });
 
     // Generate cache key based on request parameters
     const cacheKey = cacheUtils.generateApiKey('ai-chat', {
       message,
-      userContext: userContext?.uid,
+      userId: user.uid,
       historyLength: history?.length || 0,
       tone
     });
@@ -60,29 +77,29 @@ export async function POST(req: Request) {
       return NextResponse.json(cached);
     }
 
-    // Compose prompt with user context
+    // Compose prompt with user context derived server-side
     let contextString = '';
-    if (userContext) {
+    if (userProfile) {
       contextString = `User info:\n` +
-        (userContext.displayName ? `Name: ${userContext.displayName}\n` : '') +
-        (userContext.email ? `Email: ${userContext.email}\n` : '') +
-        (userContext.uid ? `User ID: ${userContext.uid}\n` : '');
-      if (userContext.profile) {
-        const p = userContext.profile;
-        if (p.budget) {
+        (userProfile.displayName ? `Name: ${userProfile.displayName}\n` : '') +
+        (userProfile.email ? `Email: ${userProfile.email}\n` : '') +
+        `User ID: ${userProfile.id}\n`;
+      if (userProfile.onboarding) {
+        const onboarding = userProfile.onboarding as any;
+        if (onboarding.budget) {
           contextString += `Budget info:\n`;
-          if (p.budget.income) contextString += `- Income: ${p.budget.income}\n`;
-          if (p.budget.incomeFrequency) contextString += `- Income Frequency: ${p.budget.incomeFrequency}\n`;
-          if (p.budget.expenses && p.budget.expenses.length > 0) {
-            contextString += `- Expenses: ${p.budget.expenses.map((e: { category: string; amount: number }) => `${e.category}: ${e.amount}`).join(', ')}\n`;
+          if (onboarding.budget.income) contextString += `- Income: ${onboarding.budget.income}\n`;
+          if (onboarding.budget.incomeFrequency) contextString += `- Income Frequency: ${onboarding.budget.incomeFrequency}\n`;
+          if (onboarding.budget.expenses && Array.isArray(onboarding.budget.expenses) && onboarding.budget.expenses.length > 0) {
+            contextString += `- Expenses: ${onboarding.budget.expenses.map((e: { category: string; amount: number }) => `${e.category}: ${e.amount}`).join(', ')}\n`;
           }
         }
-        if (p.onboardingComplete !== undefined) {
-          contextString += `Onboarding complete: ${p.onboardingComplete}\n`;
+        if (userProfile.onboardingComplete !== undefined) {
+          contextString += `Onboarding complete: ${userProfile.onboardingComplete}\n`;
         }
-        if (p.country) contextString += `Country: ${p.country}\n`;
-        if (p.dateOfBirth) contextString += `Date of Birth: ${p.dateOfBirth}\n`;
       }
+      if (userProfile.country) contextString += `Country: ${userProfile.country}\n`;
+      if (userProfile.dateOfBirth) contextString += `Date of Birth: ${userProfile.dateOfBirth}\n`;
     }
 
     // Compose chat history for context
@@ -112,4 +129,4 @@ export async function POST(req: Request) {
     console.error('AI chat error:', error);
     return NextResponse.json({ reply: 'Sorry, there was an error generating a response.' }, { status: 500 });
   }
-} 
+}
