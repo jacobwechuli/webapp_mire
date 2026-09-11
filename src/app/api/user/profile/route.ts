@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { userCache, cacheUtils } from '@/lib/cache';
+import { getDatabase } from '@/lib/db';
 import { rateLimiters } from '@/lib/rateLimit';
+
+interface ProfileUpdateData {
+  displayName?: string;
+  email?: string;
+}
 
 // GET /api/user/profile - Get user profile
 export async function GET(request: NextRequest) {
@@ -30,45 +33,58 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verify authentication
+    // Verify authentication and get user from session
     const user = await requireAuth(request);
     
-    // Check cache first
-    const cacheKey = cacheUtils.generateUserKey(user.uid, 'profile');
-    const cached = userCache.get<any>(cacheKey);
-    if (cached) {
-      return NextResponse.json({ profile: cached });
-    }
+    // Get database connection
+    const db = getDatabase();
     
-    // Get profile from Firestore
-    const userRef = doc(db, 'users', user.uid);
-    const userDoc = await getDoc(userRef);
+    // Get profile from Prisma
+    const profile = await db.user.findUnique({
+      where: { id: user.uid },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        photoUrl: true,
+        dateOfBirth: true,
+        phone: true,
+        country: true,
+        onboarding: true,
+        onboardingComplete: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
-    if (!userDoc.exists()) {
+    if (!profile) {
       // Profile doesn't exist, create one
-      const newProfile = {
-        id: user.uid,
-        email: user.email || '',
-        displayName: user.name || '',
-        photoURL: user.picture || '',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      await setDoc(userRef, newProfile);
-      
-      // Cache the new profile
-      userCache.set(cacheKey, newProfile, 30 * 60 * 1000); // 30 minutes
+      const newProfile = await db.user.create({
+        data: {
+          id: user.uid,
+          email: user.email || '',
+          displayName: user.name || '',
+          photoUrl: user.picture || '',
+        },
+        select: {
+          id: true,
+          email: true,
+          displayName: true,
+          photoUrl: true,
+          dateOfBirth: true,
+          phone: true,
+          country: true,
+          onboarding: true,
+          onboardingComplete: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
       
       return NextResponse.json({ profile: newProfile });
     }
 
-    const profileData = userDoc.data();
-    
-    // Cache the profile data
-    userCache.set(cacheKey, profileData, 30 * 60 * 1000); // 30 minutes
-    
-    return NextResponse.json({ profile: profileData });
+    return NextResponse.json({ profile });
   } catch (error) {
     console.error('Profile API error:', error);
     return NextResponse.json(
@@ -106,33 +122,39 @@ export async function PUT(request: NextRequest) {
     // Verify authentication
     const user = await requireAuth(request);
     
-    const body = await request.json();
+    const body = await request.json() as ProfileUpdateData;
     const { displayName, email } = body;
 
-    // Update profile in Firestore
-    const userRef = doc(db, 'users', user.uid);
-    const updateData: any = {
-      updatedAt: new Date().toISOString(),
-    };
+    // Get database connection
+    const db = getDatabase();
 
+    // Update profile in Prisma
+    const updateData: Record<string, any> = {};
     if (displayName !== undefined) {
       updateData.displayName = displayName;
     }
-
     if (email !== undefined) {
       updateData.email = email;
     }
 
-    await updateDoc(userRef, updateData);
+    const updatedProfile = await db.user.update({
+      where: { id: user.uid },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+        photoUrl: true,
+        dateOfBirth: true,
+        phone: true,
+        country: true,
+        onboarding: true,
+        onboardingComplete: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
 
-    // Get updated profile
-    const updatedDoc = await getDoc(userRef);
-    const updatedProfile = updatedDoc.data();
-    
-    // Update cache with new profile data
-    const cacheKey = cacheUtils.generateUserKey(user.uid, 'profile');
-    userCache.set(cacheKey, updatedProfile, 30 * 60 * 1000); // 30 minutes
-    
     return NextResponse.json({ profile: updatedProfile });
   } catch (error) {
     console.error('Profile update error:', error);
